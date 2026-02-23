@@ -57,7 +57,7 @@ export default function Sidebar({ role, userName }: SidebarProps) {
                 <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
                     <Trophy className="text-white w-5 h-5" />
                 </div>
-                <span className="text-xl font-bold tracking-tight text-slate-900">TurfBook</span>
+                <span className="text-xl font-bold tracking-tight text-slate-900">BookMyTurf</span>
             </div>
 
             <nav className="flex-1 px-4 py-4 space-y-1">

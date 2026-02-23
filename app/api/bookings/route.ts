@@ -12,21 +12,27 @@ function autoExpireBookings() {
     let changed = false;
 
     db.bookings.forEach((booking) => {
-        if (booking.status !== 'confirmed') return;
-
         const slot = db.slots.find(s => s.id === booking.slot_id);
         if (!slot) return;
 
-        // Build a Date from slot date + end_time
+        const now = new Date();
+        const bookedAt = new Date(booking.booked_at);
         const slotEnd = new Date(`${slot.date}T${slot.end_time}:00`);
 
-        if (now > slotEnd) {
+        // 1. Expire past confirmed bookings
+        if (booking.status === 'confirmed' && now > slotEnd) {
             booking.status = 'expired';
-            // Release the slot so it shows as available for future dates
             const slotIndex = db.slots.findIndex(s => s.id === booking.slot_id);
-            if (slotIndex !== -1) {
-                db.slots[slotIndex].is_booked = false;
-            }
+            if (slotIndex !== -1) db.slots[slotIndex].is_booked = false;
+            changed = true;
+        }
+
+        // 2. Release slots for stale pending bookings (e.g., older than 15 minutes)
+        const isStalePending = booking.status === 'pending' && (now.getTime() - bookedAt.getTime() > 15 * 60 * 1000);
+        if (isStalePending) {
+            booking.status = 'failed';
+            const slotIndex = db.slots.findIndex(s => s.id === booking.slot_id);
+            if (slotIndex !== -1) db.slots[slotIndex].is_booked = false;
             changed = true;
         }
     });
@@ -121,7 +127,7 @@ export async function POST(request: NextRequest) {
                 user_id: session.id,
                 turf_id,
                 slot_id: id,
-                status: 'confirmed',
+                status: 'pending',
                 booked_at: new Date().toISOString(),
                 price_paid: turf.price_per_hour,
             };
