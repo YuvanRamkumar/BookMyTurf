@@ -155,43 +155,44 @@ export default function TurfDetails() {
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                                    {slots.map((slot) => {
-                                        const isPast = slot.date === format(new Date(), "yyyy-MM-dd") && slot.start_time < format(new Date(), "HH:mm");
-                                        const isAvailable = !slot.is_booked && !isPast;
-                                        const isSelected = selectedSlots.includes(slot.id);
+                                    {slots
+                                        .filter(slot => {
+                                            const isPast = slot.date === format(new Date(), "yyyy-MM-dd") && slot.start_time < format(new Date(), "HH:mm");
+                                            return !isPast;
+                                        })
+                                        .map((slot) => {
+                                            const isSelected = selectedSlots.includes(slot.id);
 
-                                        return (
-                                            <button
-                                                key={slot.id}
-                                                disabled={!isAvailable}
-                                                onClick={() => toggleSlot(slot.id)}
-                                                className={cn(
-                                                    "px-4 py-5 rounded-[24px] border-2 font-bold transition-all duration-200 flex flex-col items-center justify-center group relative overflow-hidden",
-                                                    slot.is_booked
-                                                        ? "bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed"
-                                                        : isPast
-                                                            ? "bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed opacity-60"
+                                            return (
+                                                <button
+                                                    key={slot.id}
+                                                    disabled={slot.is_booked}
+                                                    onClick={() => toggleSlot(slot.id)}
+                                                    className={cn(
+                                                        "px-4 py-5 rounded-[24px] border-2 font-bold transition-all duration-200 flex flex-col items-center justify-center group relative overflow-hidden",
+                                                        slot.is_booked
+                                                            ? "bg-amber-100 border-amber-200 text-amber-700 cursor-not-allowed"
                                                             : isSelected
                                                                 ? "bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100"
                                                                 : "bg-white border-slate-100 text-slate-600 hover:border-indigo-600 hover:text-indigo-600"
-                                                )}
-                                            >
-                                                <div className="flex items-center space-x-1.5">
-                                                    <span className="text-base font-black">{slot.start_time}</span>
-                                                    <span className="text-xs opacity-50">–</span>
-                                                    <span className="text-base font-black">{slot.end_time}</span>
-                                                </div>
-                                                <span className="text-[10px] uppercase mt-1 opacity-70">
-                                                    {slot.is_booked ? "Reserved" : isPast ? "Ended" : "Free"}
-                                                </span>
-                                                {isSelected && (
-                                                    <div className="absolute top-1.5 right-1.5">
-                                                        <CheckCircle2 size={16} className="text-white" />
+                                                    )}
+                                                >
+                                                    <div className="flex items-center space-x-1.5">
+                                                        <span className="text-base font-black">{slot.start_time}</span>
+                                                        <span className="text-xs opacity-50">–</span>
+                                                        <span className="text-base font-black">{slot.end_time}</span>
                                                     </div>
-                                                )}
-                                            </button>
-                                        );
-                                    })}
+                                                    <span className="text-[10px] uppercase mt-1 opacity-70">
+                                                        {slot.is_booked ? "Reserved" : "Free"}
+                                                    </span>
+                                                    {isSelected && (
+                                                        <div className="absolute top-1.5 right-1.5">
+                                                            <CheckCircle2 size={16} className="text-white" />
+                                                        </div>
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
                                 </div>
                             )}
                         </div>
@@ -240,6 +241,19 @@ export default function TurfDetails() {
                                 </div>
                             </div>
 
+                            {turf.status !== 'active' && (
+                                <div className={cn(
+                                    "p-6 rounded-[32px] mb-8 border flex items-start space-x-4",
+                                    turf.status === 'maintenance' ? "bg-amber-50 border-amber-200 text-amber-800" : "bg-rose-50 border-rose-200 text-rose-800"
+                                )}>
+                                    <AlertCircle size={28} className="shrink-0 text-amber-600" />
+                                    <div>
+                                        <h4 className="font-black text-lg mb-1">{turf.status === 'maintenance' ? "Under Maintenance" : "Temporarily Closed"}</h4>
+                                        <p className="text-sm font-medium opacity-80">This arena is currently {turf.status}. We are not accepting new bookings at this time. Please check back later.</p>
+                                    </div>
+                                </div>
+                            )}
+
                             {message && (
                                 <div className={cn(
                                     "p-5 rounded-3xl mb-8 text-sm flex items-start space-x-3",
@@ -251,13 +265,13 @@ export default function TurfDetails() {
                             )}
 
                             <button
-                                disabled={selectedSlots.length === 0 || bookingLoading}
+                                disabled={selectedSlots.length === 0 || bookingLoading || turf.status !== 'active'}
                                 onClick={handleBooking}
                                 className="w-full bg-indigo-600 text-white py-5 rounded-[28px] font-black text-xl hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xl shadow-indigo-200 flex items-center justify-center space-x-2"
                             >
                                 {bookingLoading ? <Loader2 className="animate-spin" /> : (
                                     <>
-                                        <span>Confirm Booking</span>
+                                        <span>{turf.status === 'active' ? 'Confirm Booking' : 'Unavailable'}</span>
                                         <CheckCircle2 size={24} />
                                     </>
                                 )}

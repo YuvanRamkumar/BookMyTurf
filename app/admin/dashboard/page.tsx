@@ -26,6 +26,27 @@ export default function AdminDashboard() {
         fetchData();
     }, []);
 
+    const handleStatusUpdate = async (turfId: string, status: string) => {
+        try {
+            const res = await fetch(`/api/turfs/${turfId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status }),
+            });
+            if (!res.ok) throw new Error("Failed to update status");
+
+            setToast({ type: 'success', text: `Venue status updated to ${status}` });
+            setData((prev: any) => ({
+                ...prev,
+                turfs: prev.turfs.map((t: any) => t.id === turfId ? { ...t, status } : t),
+            }));
+        } catch (err: any) {
+            setToast({ type: 'error', text: err.message });
+        } finally {
+            setTimeout(() => setToast(null), 3000);
+        }
+    };
+
     const handleDelete = async (turfId: string) => {
         setShowDeleteModal(null);
         setDeletingId(turfId);
@@ -110,7 +131,12 @@ export default function AdminDashboard() {
                     </div>
                     <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
                         <div className="text-slate-500 text-sm font-medium mb-1 uppercase tracking-wider">Revenue</div>
-                        <div className="text-3xl font-black text-indigo-600">{formatCurrency(data.bookings.reduce((sum: number, b: any) => sum + (b.turf?.price_per_hour || 0), 0))}</div>
+                        <div className="text-3xl font-black text-indigo-600">
+                            {formatCurrency(data.bookings.reduce((sum: number, b: any) => {
+                                if (b.status === 'cancelled') return sum + (b.cancellation_charge || 0);
+                                return sum + (b.price_paid || b.turf?.price_per_hour || 0);
+                            }, 0))}
+                        </div>
                     </div>
                     <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
                         <div className="text-slate-500 text-sm font-medium mb-1 uppercase tracking-wider">Avg Occupancy</div>
@@ -158,8 +184,19 @@ export default function AdminDashboard() {
                                                 <Trophy size={56} className="text-indigo-100" />
                                             </div>
                                         )}
-                                        <div className="absolute top-4 left-4 px-3 py-1.5 bg-white/90 backdrop-blur rounded-xl text-[10px] font-black uppercase tracking-widest text-indigo-600 shadow-sm">
-                                            {turf.sport_type}
+                                        <div className="absolute top-4 left-4 flex space-x-2">
+                                            <div className="px-3 py-1.5 bg-white/90 backdrop-blur rounded-xl text-[10px] font-black uppercase tracking-widest text-indigo-600 shadow-sm">
+                                                {turf.sport_type}
+                                            </div>
+                                            {!turf.is_approved ? (
+                                                <div className="px-3 py-1.5 bg-amber-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-amber-200 flex items-center">
+                                                    <Clock size={10} className="mr-1" /> Pending Approval
+                                                </div>
+                                            ) : (
+                                                <div className="px-3 py-1.5 bg-emerald-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-200 flex items-center">
+                                                    <CheckCircle2 size={10} className="mr-1" /> Approved
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="absolute top-4 right-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition-all duration-200">
                                             <Link
@@ -179,7 +216,17 @@ export default function AdminDashboard() {
 
                                     {/* Details */}
                                     <div className="p-6">
-                                        <h3 className="text-xl font-black text-slate-900 mb-1 group-hover:text-indigo-600 transition-colors">{turf.name}</h3>
+                                        <div className="flex justify-between items-start mb-1">
+                                            <h3 className="text-xl font-black text-slate-900 group-hover:text-indigo-600 transition-colors uppercase tracking-tight">{turf.name}</h3>
+                                            <div className={cn(
+                                                "px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-widest border",
+                                                turf.status === 'active' ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
+                                                    turf.status === 'maintenance' ? "bg-amber-50 text-amber-600 border-amber-100" :
+                                                        "bg-rose-50 text-rose-600 border-rose-100"
+                                            )}>
+                                                {turf.status}
+                                            </div>
+                                        </div>
                                         <div className="flex items-center text-slate-400 text-sm mb-4 font-medium">
                                             <MapPin size={14} className="mr-1" />
                                             {turf.location}
@@ -192,6 +239,26 @@ export default function AdminDashboard() {
                                             </div>
                                             <div className="text-xl font-black text-slate-900">
                                                 {formatCurrency(turf.price_per_hour)}<span className="text-xs font-bold text-slate-400 ml-1">/hr</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-slate-50 p-3 rounded-2xl mb-5 flex items-center justify-between">
+                                            <span className="text-xs font-bold text-slate-500 uppercase">Set Status:</span>
+                                            <div className="flex space-x-1">
+                                                {['active', 'maintenance', 'closed'].map((s) => (
+                                                    <button
+                                                        key={s}
+                                                        onClick={() => handleStatusUpdate(turf.id, s)}
+                                                        className={cn(
+                                                            "px-2 py-1 rounded-lg text-[10px] font-black uppercase transition-all",
+                                                            turf.status === s
+                                                                ? (s === 'active' ? "bg-emerald-600 text-white" : s === 'maintenance' ? "bg-amber-500 text-white" : "bg-rose-500 text-white")
+                                                                : "bg-white text-slate-400 hover:bg-slate-100"
+                                                        )}
+                                                    >
+                                                        {s}
+                                                    </button>
+                                                ))}
                                             </div>
                                         </div>
 

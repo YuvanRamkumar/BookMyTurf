@@ -11,7 +11,8 @@ import {
     Settings,
     LogOut,
     MapPin,
-    Trophy
+    Trophy,
+    History
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -34,6 +35,7 @@ export default function Sidebar({ role, userName }: SidebarProps) {
         { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
         { href: "/turfs", icon: Search, label: "Browse Turfs" },
         { href: "/bookings", icon: CalendarCheck, label: "My Bookings" },
+        { href: "/bookings/history", icon: History, label: "History" },
     ];
 
     const adminLinks = [

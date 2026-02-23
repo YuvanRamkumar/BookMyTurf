@@ -12,6 +12,21 @@ export async function GET(request: NextRequest) {
     }
 
     const db = getDb();
+    const turf = db.turfs.find(t => t.id === turfId);
+
+    if (!turf) {
+        return NextResponse.json({ error: 'Turf not found' }, { status: 404 });
+    }
+
+    const session = await getSession();
+
+    // If turf is not approved, only admin of that turf or super admin can see slots
+    if (!turf.is_approved) {
+        if (!session || (session.role !== 'SUPER_ADMIN' && (session.role !== 'ADMIN' || turf.admin_id !== session.id))) {
+            return NextResponse.json({ error: 'Turf not yet approved or verified' }, { status: 403 });
+        }
+    }
+
     const slots = db.slots.filter(s => s.turf_id === turfId && s.date === date);
 
     // Sort by start_time

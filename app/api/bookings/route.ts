@@ -2,14 +2,52 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb, saveDb, Booking } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 
+/**
+ * Auto-expire bookings whose slot end_time + date has passed.
+ * Marks them as 'expired' and releases the slot.
+ */
+function autoExpireBookings() {
+    const db = getDb();
+    const now = new Date();
+    let changed = false;
+
+    db.bookings.forEach((booking) => {
+        if (booking.status !== 'confirmed') return;
+
+        const slot = db.slots.find(s => s.id === booking.slot_id);
+        if (!slot) return;
+
+        // Build a Date from slot date + end_time
+        const slotEnd = new Date(`${slot.date}T${slot.end_time}:00`);
+
+        if (now > slotEnd) {
+            booking.status = 'expired';
+            // Release the slot so it shows as available for future dates
+            const slotIndex = db.slots.findIndex(s => s.id === booking.slot_id);
+            if (slotIndex !== -1) {
+                db.slots[slotIndex].is_booked = false;
+            }
+            changed = true;
+        }
+    });
+
+    if (changed) {
+        saveDb(db);
+    }
+
+    return db;
+}
+
 export async function GET(request: NextRequest) {
     const session = await getSession();
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { searchParams } = new URL(request.url);
     const turfId = searchParams.get('turfId');
+    const status = searchParams.get('status'); // 'active' | 'history' | null (all)
 
-    const db = getDb();
+    // Auto-expire before fetching
+    const db = autoExpireBookings();
     let bookings = db.bookings;
 
     if (session.role === 'USER') {
@@ -20,6 +58,13 @@ export async function GET(request: NextRequest) {
         if (turfId) bookings = bookings.filter(b => b.turf_id === turfId);
     } else if (session.role === 'SUPER_ADMIN') {
         if (turfId) bookings = bookings.filter(b => b.turf_id === turfId);
+    }
+
+    // Filter by status category
+    if (status === 'active') {
+        bookings = bookings.filter(b => b.status === 'confirmed');
+    } else if (status === 'history') {
+        bookings = bookings.filter(b => b.status === 'expired' || b.status === 'cancelled');
     }
 
     // Join data for UI
@@ -46,6 +91,16 @@ export async function POST(request: NextRequest) {
         }
 
         const db = getDb();
+
+        const turf = db.turfs.find(t => t.id === turf_id);
+        if (!turf) {
+            return NextResponse.json({ error: 'Turf not found' }, { status: 404 });
+        }
+
+        if (!turf.is_approved) {
+            return NextResponse.json({ error: 'This arena is currently under review and cannot accept bookings yet.' }, { status: 403 });
+        }
+
         const bookingsCreated = [];
 
         for (const id of idsToBook) {
@@ -68,6 +123,7 @@ export async function POST(request: NextRequest) {
                 slot_id: id,
                 status: 'confirmed',
                 booked_at: new Date().toISOString(),
+                price_paid: turf.price_per_hour,
             };
 
             db.bookings.push(newBooking);
@@ -108,6 +164,11 @@ export async function DELETE(request: NextRequest) {
 
         const booking = db.bookings[bookingIndex];
 
+        // Only confirmed bookings can be cancelled
+        if (booking.status !== 'confirmed') {
+            return NextResponse.json({ error: 'Only confirmed bookings can be cancelled' }, { status: 400 });
+        }
+
         // Check if user is authorized to delete this booking
         if (session.role === 'USER' && booking.user_id !== session.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
@@ -119,8 +180,10 @@ export async function DELETE(request: NextRequest) {
             db.slots[slotIndex].is_booked = false;
         }
 
-        // Remove the booking
-        db.bookings.splice(bookingIndex, 1);
+        // Mark as cancelled and apply 20% cancellation charge
+        const charge = booking.price_paid * 0.2;
+        db.bookings[bookingIndex].status = 'cancelled';
+        db.bookings[bookingIndex].cancellation_charge = charge;
 
         saveDb(db);
 

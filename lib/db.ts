@@ -24,6 +24,8 @@ export interface Turf {
   closing_time: string; // HH:mm
   admin_id: string;
   image_url?: string;
+  is_approved: boolean;
+  status: 'active' | 'maintenance' | 'closed';
 }
 
 export interface Slot {
@@ -40,8 +42,10 @@ export interface Booking {
   user_id: string;
   turf_id: string;
   slot_id: string;
-  status: 'confirmed' | 'cancelled';
+  status: 'confirmed' | 'cancelled' | 'expired';
   booked_at: string;
+  price_paid: number;
+  cancellation_charge?: number;
 }
 
 interface Database {
@@ -80,6 +84,8 @@ const initialData: Database = {
       opening_time: '06:00',
       closing_time: '22:00',
       admin_id: 'a1',
+      is_approved: true,
+      status: 'active',
     },
     {
       id: 't2',
@@ -90,6 +96,8 @@ const initialData: Database = {
       opening_time: '07:00',
       closing_time: '21:00',
       admin_id: 'a1',
+      is_approved: true,
+      status: 'active',
     }
   ],
   slots: [],
@@ -126,8 +134,17 @@ export function getDb(): Database {
     fs.writeFileSync(DB_PATH, JSON.stringify(initialData, null, 2));
     return initialData;
   }
-  const data = fs.readFileSync(DB_PATH, 'utf-8');
-  return JSON.parse(data);
+  const data = JSON.parse(fs.readFileSync(DB_PATH, 'utf-8'));
+  // Maintenance: ensure all turfs have the status field
+  let changed = false;
+  data.turfs.forEach((t: any) => {
+    if (!t.status) {
+      t.status = 'active';
+      changed = true;
+    }
+  });
+  if (changed) saveDb(data);
+  return data;
 }
 
 export function saveDb(data: Database) {

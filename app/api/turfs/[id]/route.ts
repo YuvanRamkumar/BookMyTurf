@@ -44,7 +44,7 @@ export async function PUT(
         }
 
         // Update allowed fields
-        const allowedFields = ['name', 'location', 'sport_type', 'price_per_hour', 'opening_time', 'closing_time', 'image_url'];
+        const allowedFields = ['name', 'location', 'sport_type', 'price_per_hour', 'opening_time', 'closing_time', 'image_url', 'status'];
         for (const field of allowedFields) {
             if (updates[field] !== undefined) {
                 (db.turfs[turfIndex] as any)[field] = field === 'price_per_hour' ? Number(updates[field]) : updates[field];
