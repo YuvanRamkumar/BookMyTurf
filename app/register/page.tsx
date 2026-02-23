@@ -61,7 +61,7 @@ export default function RegisterPage() {
                     <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center">
                         <Trophy className="text-white w-6 h-6" />
                     </div>
-                    <span className="text-2xl font-bold tracking-tight text-slate-900">TurfBook</span>
+                    <span className="text-2xl font-bold tracking-tight text-slate-900">BookMyTurf</span>
                 </Link>
                 <h2 className="text-center text-3xl font-extrabold text-slate-900">Create your account</h2>
                 <p className="mt-2 text-center text-sm text-slate-600">

@@ -369,7 +369,7 @@
       "date": "2026-02-23",
       "start_time": "14:00",
       "end_time": "15:00",
-      "is_booked": true
+      "is_booked": false
     },
     {
       "id": "s-t1-2026-02-23-15",
@@ -377,7 +377,7 @@
       "date": "2026-02-23",
       "start_time": "15:00",
       "end_time": "16:00",
-      "is_booked": true
+      "is_booked": false
     },
     {
       "id": "s-t1-2026-02-23-16",
@@ -1721,7 +1721,7 @@
       "date": "2026-02-23",
       "start_time": "22:00",
       "end_time": "23:00",
-      "is_booked": false
+      "is_booked": true
     },
     {
       "id": "s-sxpvta-2026-02-24-0",
@@ -1801,7 +1801,7 @@
       "date": "2026-02-24",
       "start_time": "09:00",
       "end_time": "10:00",
-      "is_booked": false
+      "is_booked": true
     },
     {
       "id": "s-sxpvta-2026-02-24-10",
@@ -4354,7 +4354,7 @@
       "user_id": "cwdwje",
       "turf_id": "t1",
       "slot_id": "s-t1-2026-02-23-14",
-      "status": "confirmed",
+      "status": "expired",
       "booked_at": "2026-02-23T04:55:59.634Z"
     },
     {
@@ -4362,8 +4362,26 @@
       "user_id": "cwdwje",
       "turf_id": "t1",
       "slot_id": "s-t1-2026-02-23-15",
-      "status": "confirmed",
+      "status": "expired",
       "booked_at": "2026-02-23T04:55:59.634Z"
+    },
+    {
+      "id": "zgjap",
+      "user_id": "cwdwje",
+      "turf_id": "sxpvta",
+      "slot_id": "s-sxpvta-2026-02-24-9",
+      "status": "pending",
+      "booked_at": "2026-02-23T16:25:04.011Z",
+      "price_paid": 1000
+    },
+    {
+      "id": "ora33s",
+      "user_id": "cwdwje",
+      "turf_id": "sxpvta",
+      "slot_id": "s-sxpvta-2026-02-23-22",
+      "status": "pending",
+      "booked_at": "2026-02-23T16:30:07.616Z",
+      "price_paid": 1000
     }
   ]
 }

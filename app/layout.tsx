@@ -5,8 +5,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "TurfBook | Seamless Sports Turf Booking",
-  description: "Book your favorite sports turfs instantly. Football, Cricket, Pickleball and more.",
+  title: "BookMyTurf | Seamless Sports Turf Booking",
+  description: "Find and book your favorite sports turfs instantly.",
 };
 
 export default function RootLayout({

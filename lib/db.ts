@@ -42,10 +42,12 @@ export interface Booking {
   user_id: string;
   turf_id: string;
   slot_id: string;
-  status: 'confirmed' | 'cancelled' | 'expired';
+  status: 'pending' | 'confirmed' | 'cancelled' | 'expired' | 'failed';
   booked_at: string;
   price_paid: number;
   cancellation_charge?: number;
+  razorpay_order_id?: string;
+  razorpay_payment_id?: string;
 }
 
 interface Database {

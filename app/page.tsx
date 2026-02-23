@@ -10,7 +10,7 @@ export default function Home() {
           <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
             <Trophy className="text-white w-5 h-5" />
           </div>
-          <span className="font-bold text-xl tracking-tight text-slate-900">TurfBook</span>
+          <span className="font-bold text-xl tracking-tight text-slate-900">BookMyTurf</span>
         </Link>
         <nav className="ml-auto flex gap-4 sm:gap-6">
           <Link className="text-sm font-medium hover:text-indigo-600 transition-colors" href="/login">
@@ -85,7 +85,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t border-slate-200 bg-white">
-        <p className="text-xs text-slate-500">© 2026 TurfBook Inc. All rights reserved.</p>
+        <p className="text-xs text-slate-500">© 2026 BookMyTurf Inc. All rights reserved.</p>
         <nav className="sm:ml-auto flex gap-4 sm:gap-6">
           <Link className="text-xs hover:underline underline-offset-4" href="#">
             Terms of Service
