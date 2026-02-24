@@ -1721,7 +1721,7 @@
       "date": "2026-02-23",
       "start_time": "22:00",
       "end_time": "23:00",
-      "is_booked": true
+      "is_booked": false
     },
     {
       "id": "s-sxpvta-2026-02-24-0",
@@ -1801,7 +1801,7 @@
       "date": "2026-02-24",
       "start_time": "09:00",
       "end_time": "10:00",
-      "is_booked": true
+      "is_booked": false
     },
     {
       "id": "s-sxpvta-2026-02-24-10",
@@ -4290,6 +4290,558 @@
       "start_time": "22:00",
       "end_time": "23:00",
       "is_booked": false
+    },
+    {
+      "id": "s-t1-2026-03-02-0",
+      "turf_id": "t1",
+      "date": "2026-03-02",
+      "start_time": "00:00",
+      "end_time": "01:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-t1-2026-03-02-1",
+      "turf_id": "t1",
+      "date": "2026-03-02",
+      "start_time": "01:00",
+      "end_time": "02:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-t1-2026-03-02-2",
+      "turf_id": "t1",
+      "date": "2026-03-02",
+      "start_time": "02:00",
+      "end_time": "03:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-t1-2026-03-02-3",
+      "turf_id": "t1",
+      "date": "2026-03-02",
+      "start_time": "03:00",
+      "end_time": "04:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-t1-2026-03-02-4",
+      "turf_id": "t1",
+      "date": "2026-03-02",
+      "start_time": "04:00",
+      "end_time": "05:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-t1-2026-03-02-5",
+      "turf_id": "t1",
+      "date": "2026-03-02",
+      "start_time": "05:00",
+      "end_time": "06:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-t1-2026-03-02-6",
+      "turf_id": "t1",
+      "date": "2026-03-02",
+      "start_time": "06:00",
+      "end_time": "07:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-t1-2026-03-02-7",
+      "turf_id": "t1",
+      "date": "2026-03-02",
+      "start_time": "07:00",
+      "end_time": "08:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-t1-2026-03-02-8",
+      "turf_id": "t1",
+      "date": "2026-03-02",
+      "start_time": "08:00",
+      "end_time": "09:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-t1-2026-03-02-9",
+      "turf_id": "t1",
+      "date": "2026-03-02",
+      "start_time": "09:00",
+      "end_time": "10:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-t1-2026-03-02-10",
+      "turf_id": "t1",
+      "date": "2026-03-02",
+      "start_time": "10:00",
+      "end_time": "11:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-t1-2026-03-02-11",
+      "turf_id": "t1",
+      "date": "2026-03-02",
+      "start_time": "11:00",
+      "end_time": "12:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-t1-2026-03-02-12",
+      "turf_id": "t1",
+      "date": "2026-03-02",
+      "start_time": "12:00",
+      "end_time": "13:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-t1-2026-03-02-13",
+      "turf_id": "t1",
+      "date": "2026-03-02",
+      "start_time": "13:00",
+      "end_time": "14:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-t1-2026-03-02-14",
+      "turf_id": "t1",
+      "date": "2026-03-02",
+      "start_time": "14:00",
+      "end_time": "15:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-t1-2026-03-02-15",
+      "turf_id": "t1",
+      "date": "2026-03-02",
+      "start_time": "15:00",
+      "end_time": "16:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-t1-2026-03-02-16",
+      "turf_id": "t1",
+      "date": "2026-03-02",
+      "start_time": "16:00",
+      "end_time": "17:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-t1-2026-03-02-17",
+      "turf_id": "t1",
+      "date": "2026-03-02",
+      "start_time": "17:00",
+      "end_time": "18:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-t1-2026-03-02-18",
+      "turf_id": "t1",
+      "date": "2026-03-02",
+      "start_time": "18:00",
+      "end_time": "19:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-t1-2026-03-02-19",
+      "turf_id": "t1",
+      "date": "2026-03-02",
+      "start_time": "19:00",
+      "end_time": "20:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-t1-2026-03-02-20",
+      "turf_id": "t1",
+      "date": "2026-03-02",
+      "start_time": "20:00",
+      "end_time": "21:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-t1-2026-03-02-21",
+      "turf_id": "t1",
+      "date": "2026-03-02",
+      "start_time": "21:00",
+      "end_time": "22:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-t1-2026-03-02-22",
+      "turf_id": "t1",
+      "date": "2026-03-02",
+      "start_time": "22:00",
+      "end_time": "23:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-sxpvta-2026-03-02-0",
+      "turf_id": "sxpvta",
+      "date": "2026-03-02",
+      "start_time": "00:00",
+      "end_time": "01:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-sxpvta-2026-03-02-1",
+      "turf_id": "sxpvta",
+      "date": "2026-03-02",
+      "start_time": "01:00",
+      "end_time": "02:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-sxpvta-2026-03-02-2",
+      "turf_id": "sxpvta",
+      "date": "2026-03-02",
+      "start_time": "02:00",
+      "end_time": "03:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-sxpvta-2026-03-02-3",
+      "turf_id": "sxpvta",
+      "date": "2026-03-02",
+      "start_time": "03:00",
+      "end_time": "04:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-sxpvta-2026-03-02-4",
+      "turf_id": "sxpvta",
+      "date": "2026-03-02",
+      "start_time": "04:00",
+      "end_time": "05:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-sxpvta-2026-03-02-5",
+      "turf_id": "sxpvta",
+      "date": "2026-03-02",
+      "start_time": "05:00",
+      "end_time": "06:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-sxpvta-2026-03-02-6",
+      "turf_id": "sxpvta",
+      "date": "2026-03-02",
+      "start_time": "06:00",
+      "end_time": "07:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-sxpvta-2026-03-02-7",
+      "turf_id": "sxpvta",
+      "date": "2026-03-02",
+      "start_time": "07:00",
+      "end_time": "08:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-sxpvta-2026-03-02-8",
+      "turf_id": "sxpvta",
+      "date": "2026-03-02",
+      "start_time": "08:00",
+      "end_time": "09:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-sxpvta-2026-03-02-9",
+      "turf_id": "sxpvta",
+      "date": "2026-03-02",
+      "start_time": "09:00",
+      "end_time": "10:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-sxpvta-2026-03-02-10",
+      "turf_id": "sxpvta",
+      "date": "2026-03-02",
+      "start_time": "10:00",
+      "end_time": "11:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-sxpvta-2026-03-02-11",
+      "turf_id": "sxpvta",
+      "date": "2026-03-02",
+      "start_time": "11:00",
+      "end_time": "12:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-sxpvta-2026-03-02-12",
+      "turf_id": "sxpvta",
+      "date": "2026-03-02",
+      "start_time": "12:00",
+      "end_time": "13:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-sxpvta-2026-03-02-13",
+      "turf_id": "sxpvta",
+      "date": "2026-03-02",
+      "start_time": "13:00",
+      "end_time": "14:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-sxpvta-2026-03-02-14",
+      "turf_id": "sxpvta",
+      "date": "2026-03-02",
+      "start_time": "14:00",
+      "end_time": "15:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-sxpvta-2026-03-02-15",
+      "turf_id": "sxpvta",
+      "date": "2026-03-02",
+      "start_time": "15:00",
+      "end_time": "16:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-sxpvta-2026-03-02-16",
+      "turf_id": "sxpvta",
+      "date": "2026-03-02",
+      "start_time": "16:00",
+      "end_time": "17:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-sxpvta-2026-03-02-17",
+      "turf_id": "sxpvta",
+      "date": "2026-03-02",
+      "start_time": "17:00",
+      "end_time": "18:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-sxpvta-2026-03-02-18",
+      "turf_id": "sxpvta",
+      "date": "2026-03-02",
+      "start_time": "18:00",
+      "end_time": "19:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-sxpvta-2026-03-02-19",
+      "turf_id": "sxpvta",
+      "date": "2026-03-02",
+      "start_time": "19:00",
+      "end_time": "20:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-sxpvta-2026-03-02-20",
+      "turf_id": "sxpvta",
+      "date": "2026-03-02",
+      "start_time": "20:00",
+      "end_time": "21:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-sxpvta-2026-03-02-21",
+      "turf_id": "sxpvta",
+      "date": "2026-03-02",
+      "start_time": "21:00",
+      "end_time": "22:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-sxpvta-2026-03-02-22",
+      "turf_id": "sxpvta",
+      "date": "2026-03-02",
+      "start_time": "22:00",
+      "end_time": "23:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-czo29s-2026-03-02-0",
+      "turf_id": "czo29s",
+      "date": "2026-03-02",
+      "start_time": "00:00",
+      "end_time": "01:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-czo29s-2026-03-02-1",
+      "turf_id": "czo29s",
+      "date": "2026-03-02",
+      "start_time": "01:00",
+      "end_time": "02:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-czo29s-2026-03-02-2",
+      "turf_id": "czo29s",
+      "date": "2026-03-02",
+      "start_time": "02:00",
+      "end_time": "03:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-czo29s-2026-03-02-3",
+      "turf_id": "czo29s",
+      "date": "2026-03-02",
+      "start_time": "03:00",
+      "end_time": "04:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-czo29s-2026-03-02-4",
+      "turf_id": "czo29s",
+      "date": "2026-03-02",
+      "start_time": "04:00",
+      "end_time": "05:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-czo29s-2026-03-02-5",
+      "turf_id": "czo29s",
+      "date": "2026-03-02",
+      "start_time": "05:00",
+      "end_time": "06:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-czo29s-2026-03-02-6",
+      "turf_id": "czo29s",
+      "date": "2026-03-02",
+      "start_time": "06:00",
+      "end_time": "07:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-czo29s-2026-03-02-7",
+      "turf_id": "czo29s",
+      "date": "2026-03-02",
+      "start_time": "07:00",
+      "end_time": "08:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-czo29s-2026-03-02-8",
+      "turf_id": "czo29s",
+      "date": "2026-03-02",
+      "start_time": "08:00",
+      "end_time": "09:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-czo29s-2026-03-02-9",
+      "turf_id": "czo29s",
+      "date": "2026-03-02",
+      "start_time": "09:00",
+      "end_time": "10:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-czo29s-2026-03-02-10",
+      "turf_id": "czo29s",
+      "date": "2026-03-02",
+      "start_time": "10:00",
+      "end_time": "11:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-czo29s-2026-03-02-11",
+      "turf_id": "czo29s",
+      "date": "2026-03-02",
+      "start_time": "11:00",
+      "end_time": "12:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-czo29s-2026-03-02-12",
+      "turf_id": "czo29s",
+      "date": "2026-03-02",
+      "start_time": "12:00",
+      "end_time": "13:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-czo29s-2026-03-02-13",
+      "turf_id": "czo29s",
+      "date": "2026-03-02",
+      "start_time": "13:00",
+      "end_time": "14:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-czo29s-2026-03-02-14",
+      "turf_id": "czo29s",
+      "date": "2026-03-02",
+      "start_time": "14:00",
+      "end_time": "15:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-czo29s-2026-03-02-15",
+      "turf_id": "czo29s",
+      "date": "2026-03-02",
+      "start_time": "15:00",
+      "end_time": "16:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-czo29s-2026-03-02-16",
+      "turf_id": "czo29s",
+      "date": "2026-03-02",
+      "start_time": "16:00",
+      "end_time": "17:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-czo29s-2026-03-02-17",
+      "turf_id": "czo29s",
+      "date": "2026-03-02",
+      "start_time": "17:00",
+      "end_time": "18:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-czo29s-2026-03-02-18",
+      "turf_id": "czo29s",
+      "date": "2026-03-02",
+      "start_time": "18:00",
+      "end_time": "19:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-czo29s-2026-03-02-19",
+      "turf_id": "czo29s",
+      "date": "2026-03-02",
+      "start_time": "19:00",
+      "end_time": "20:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-czo29s-2026-03-02-20",
+      "turf_id": "czo29s",
+      "date": "2026-03-02",
+      "start_time": "20:00",
+      "end_time": "21:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-czo29s-2026-03-02-21",
+      "turf_id": "czo29s",
+      "date": "2026-03-02",
+      "start_time": "21:00",
+      "end_time": "22:00",
+      "is_booked": false
+    },
+    {
+      "id": "s-czo29s-2026-03-02-22",
+      "turf_id": "czo29s",
+      "date": "2026-03-02",
+      "start_time": "22:00",
+      "end_time": "23:00",
+      "is_booked": false
     }
   ],
   "bookings": [
@@ -4370,7 +4922,7 @@
       "user_id": "cwdwje",
       "turf_id": "sxpvta",
       "slot_id": "s-sxpvta-2026-02-24-9",
-      "status": "pending",
+      "status": "failed",
       "booked_at": "2026-02-23T16:25:04.011Z",
       "price_paid": 1000
     },
@@ -4379,7 +4931,7 @@
       "user_id": "cwdwje",
       "turf_id": "sxpvta",
       "slot_id": "s-sxpvta-2026-02-23-22",
-      "status": "pending",
+      "status": "failed",
       "booked_at": "2026-02-23T16:30:07.616Z",
       "price_paid": 1000
     }
