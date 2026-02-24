@@ -1,7 +1,9 @@
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
-import { razorpay } from "@/lib/razorpay"
+import { getRazorpay } from "@/lib/razorpay"
 import { NextResponse } from "next/server"
+
+export const dynamic = 'force-dynamic'
 
 export async function POST(req: Request) {
     try {
@@ -9,6 +11,8 @@ export async function POST(req: Request) {
         if (!session || !session.user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
+
+        const razorpay = getRazorpay()
 
         const { slotId } = await req.json()
         if (!slotId) {
