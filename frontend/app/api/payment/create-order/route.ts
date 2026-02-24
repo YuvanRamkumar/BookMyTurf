@@ -3,10 +3,25 @@ import Razorpay from 'razorpay';
 import { getDb, saveDb } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 
-const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID || '',
-    key_secret: process.env.RAZORPAY_KEY_SECRET || '',
-});
+// Lazily initialize Razorpay to avoid build-time errors when env vars are not available
+let razorpay: Razorpay | null = null;
+
+function getRazorpayInstance() {
+    if (!razorpay) {
+        const key_id = process.env.RAZORPAY_KEY_ID;
+        const key_secret = process.env.RAZORPAY_KEY_SECRET;
+        
+        if (!key_id || !key_secret) {
+            throw new Error('Razorpay credentials not configured. Please set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET environment variables.');
+        }
+        
+        razorpay = new Razorpay({
+            key_id,
+            key_secret,
+        });
+    }
+    return razorpay;
+}
 
 export async function POST(request: NextRequest) {
     const session = await getSession();
@@ -42,7 +57,8 @@ export async function POST(request: NextRequest) {
             receipt: `receipt_${booking.id}`,
         };
 
-        const order = await razorpay.orders.create(options);
+        const razorpayInstance = getRazorpayInstance();
+        const order = await razorpayInstance.orders.create(options);
 
         // Save order ID to booking
         const bookingIndex = db.bookings.findIndex(b => b.id === booking_id);
