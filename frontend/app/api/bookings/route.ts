@@ -12,27 +12,34 @@ function autoExpireBookings() {
     let changed = false;
 
     db.bookings.forEach((booking) => {
-        const slot = db.slots.find(s => s.id === booking.slot_id);
-        if (!slot) return;
+        // Handle multiple slot IDs (comma-separated)
+        const slotIds = booking.slot_id.split(',');
+        const slots = slotIds.map(sid => db.slots.find(s => s.id === sid)).filter(Boolean);
+        
+        if (slots.length === 0) return;
 
-        const now = new Date();
         const bookedAt = new Date(booking.booked_at);
-        const slotEnd = new Date(`${slot.date}T${slot.end_time}:00`);
+        // Use the last slot's end time for expiry check
+        const lastSlot = slots[slots.length - 1];
+        if (!lastSlot) return;
+        const slotEnd = new Date(`${lastSlot.date}T${lastSlot.end_time}:00`);
 
         // 1. Expire past confirmed bookings
         if (booking.status === 'confirmed' && now > slotEnd) {
             booking.status = 'expired';
-            const slotIndex = db.slots.findIndex(s => s.id === booking.slot_id);
-            if (slotIndex !== -1) db.slots[slotIndex].is_booked = false;
+            // Release all slots
+            for (const slotId of slotIds) {
+                const slotIndex = db.slots.findIndex(s => s.id === slotId);
+                if (slotIndex !== -1) db.slots[slotIndex].is_booked = false;
+            }
             changed = true;
         }
 
-        // 2. Release slots for stale pending bookings (e.g., older than 15 minutes)
+        // 2. Release pending bookings older than 15 minutes (payment not completed)
         const isStalePending = booking.status === 'pending' && (now.getTime() - bookedAt.getTime() > 15 * 60 * 1000);
         if (isStalePending) {
             booking.status = 'failed';
-            const slotIndex = db.slots.findIndex(s => s.id === booking.slot_id);
-            if (slotIndex !== -1) db.slots[slotIndex].is_booked = false;
+            // Slots were never reserved for pending bookings, so no need to release
             changed = true;
         }
     });
@@ -76,9 +83,26 @@ export async function GET(request: NextRequest) {
     // Join data for UI
     const detailedBookings = bookings.map(b => {
         const turf = db.turfs.find(t => t.id === b.turf_id);
-        const slot = db.slots.find(s => s.id === b.slot_id);
         const user = db.users.find(u => u.id === b.user_id);
-        return { ...b, turf, slot, userName: user?.name, userEmail: user?.email };
+        
+        // Handle multiple slot IDs (comma-separated)
+        const slotIds = b.slot_id.split(',');
+        const slots = slotIds.map(sid => db.slots.find(s => s.id === sid)).filter(Boolean);
+        
+        // For display, show first and last slot times if multiple
+        let slot = null;
+        if (slots.length > 0) {
+            const firstSlot = slots[0];
+            const lastSlot = slots[slots.length - 1];
+            slot = {
+                ...firstSlot,
+                start_time: firstSlot?.start_time,
+                end_time: lastSlot?.end_time,
+                slot_count: slots.length
+            };
+        }
+        
+        return { ...b, turf, slot, slots, userName: user?.name, userEmail: user?.email };
     });
 
     return NextResponse.json(detailedBookings);
@@ -107,43 +131,38 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'This arena is currently under review and cannot accept bookings yet.' }, { status: 403 });
         }
 
-        const bookingsCreated = [];
-
+        // Validate all slots are available (but don't mark them as booked yet)
+        const validSlotIds: string[] = [];
         for (const id of idsToBook) {
-            const slotIndex = db.slots.findIndex(s => s.id === id && s.turf_id === turf_id);
-
-            if (slotIndex === -1) {
-                continue; // Or handle error
+            const slot = db.slots.find(s => s.id === id && s.turf_id === turf_id);
+            if (!slot) {
+                return NextResponse.json({ error: `Slot ${id} not found` }, { status: 404 });
             }
-
-            if (db.slots[slotIndex].is_booked) {
-                continue; // Or handle error
+            if (slot.is_booked) {
+                return NextResponse.json({ error: `Slot ${slot.start_time} - ${slot.end_time} is already booked` }, { status: 409 });
             }
-
-            db.slots[slotIndex].is_booked = true;
-
-            const newBooking: Booking = {
-                id: Math.random().toString(36).substring(7),
-                user_id: session.id,
-                turf_id,
-                slot_id: id,
-                status: 'pending',
-                booked_at: new Date().toISOString(),
-                price_paid: turf.price_per_hour,
-            };
-
-            db.bookings.push(newBooking);
-            bookingsCreated.push(newBooking);
+            validSlotIds.push(id);
         }
 
-        if (bookingsCreated.length === 0) {
-            return NextResponse.json({ error: 'Failed to book any slots' }, { status: 409 });
-        }
+        // Calculate total price for all slots
+        const totalPrice = turf.price_per_hour * validSlotIds.length;
 
+        // Create a single booking with all slot IDs (stored as comma-separated string)
+        // Slots are NOT marked as booked yet - they will be reserved only after payment
+        const newBooking: Booking = {
+            id: Math.random().toString(36).substring(7),
+            user_id: session.id,
+            turf_id,
+            slot_id: validSlotIds.join(','), // Store multiple slot IDs
+            status: 'pending',
+            booked_at: new Date().toISOString(),
+            price_paid: totalPrice, // Total price for all slots
+        };
+
+        db.bookings.push(newBooking);
         saveDb(db);
 
-        // Return the first booking ID for the confirmation page redirect
-        return NextResponse.json(bookingsCreated[0]);
+        return NextResponse.json(newBooking);
     } catch (error) {
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
@@ -180,10 +199,13 @@ export async function DELETE(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
         }
 
-        // Release the slot
-        const slotIndex = db.slots.findIndex(s => s.id === booking.slot_id);
-        if (slotIndex !== -1) {
-            db.slots[slotIndex].is_booked = false;
+        // Release all slots (handle multiple slot IDs separated by comma)
+        const slotIds = booking.slot_id.split(',');
+        for (const slotId of slotIds) {
+            const slotIndex = db.slots.findIndex(s => s.id === slotId);
+            if (slotIndex !== -1) {
+                db.slots[slotIndex].is_booked = false;
+            }
         }
 
         // Mark as cancelled and apply 20% cancellation charge

@@ -23,6 +23,14 @@
       "password": "123456",
       "role": "USER",
       "is_approved": true
+    },
+    {
+      "id": "40dtie",
+      "name": "Jaikrishna S",
+      "email": "jaikrishnasekaran@gmail.com",
+      "password": "jaikrishna24",
+      "role": "USER",
+      "is_approved": true
     }
   ],
   "turfs": [
@@ -4934,6 +4942,51 @@
       "status": "failed",
       "booked_at": "2026-02-23T16:30:07.616Z",
       "price_paid": 1000
+    },
+    {
+      "id": "emz1c9",
+      "user_id": "40dtie",
+      "turf_id": "sxpvta",
+      "slot_id": "s-sxpvta-2026-02-24-18",
+      "status": "pending",
+      "booked_at": "2026-02-24T11:55:07.356Z",
+      "price_paid": 1000
+    },
+    {
+      "id": "b3uohs",
+      "user_id": "40dtie",
+      "turf_id": "sxpvta",
+      "slot_id": "s-sxpvta-2026-02-24-19",
+      "status": "pending",
+      "booked_at": "2026-02-24T11:55:07.356Z",
+      "price_paid": 1000
+    },
+    {
+      "id": "q6w00o",
+      "user_id": "40dtie",
+      "turf_id": "sxpvta",
+      "slot_id": "s-sxpvta-2026-02-24-20",
+      "status": "pending",
+      "booked_at": "2026-02-24T11:55:07.356Z",
+      "price_paid": 1000
+    },
+    {
+      "id": "wwhhe",
+      "user_id": "40dtie",
+      "turf_id": "sxpvta",
+      "slot_id": "s-sxpvta-2026-02-24-21,s-sxpvta-2026-02-24-22",
+      "status": "pending",
+      "booked_at": "2026-02-24T12:01:49.240Z",
+      "price_paid": 2000
+    },
+    {
+      "id": "udk8al",
+      "user_id": "40dtie",
+      "turf_id": "sxpvta",
+      "slot_id": "s-sxpvta-2026-02-24-21,s-sxpvta-2026-02-24-22",
+      "status": "pending",
+      "booked_at": "2026-02-24T12:02:10.032Z",
+      "price_paid": 2000
     }
   ]
 }

@@ -36,23 +36,20 @@ export async function POST(request: NextRequest) {
             db.bookings[bookingIndex].status = 'confirmed';
             db.bookings[bookingIndex].razorpay_payment_id = razorpay_payment_id;
 
-            // Mark slot as booked (safety check - it should already be true if it was pending)
-            const slotIndex = db.slots.findIndex(s => s.id === db.bookings[bookingIndex].slot_id);
-            if (slotIndex !== -1) {
-                db.slots[slotIndex].is_booked = true;
+            // Mark all slots as booked (handle multiple slot IDs separated by comma)
+            const slotIds = db.bookings[bookingIndex].slot_id.split(',');
+            for (const slotId of slotIds) {
+                const slotIndex = db.slots.findIndex(s => s.id === slotId);
+                if (slotIndex !== -1) {
+                    db.slots[slotIndex].is_booked = true;
+                }
             }
 
             saveDb(db);
             return NextResponse.json({ success: true, message: 'Payment verified and booking confirmed' });
         } else {
-            // Mark booking failed
+            // Mark booking failed - slots were never reserved so no need to release
             db.bookings[bookingIndex].status = 'failed';
-
-            // Release the slot
-            const slotIndex = db.slots.findIndex(s => s.id === db.bookings[bookingIndex].slot_id);
-            if (slotIndex !== -1) {
-                db.slots[slotIndex].is_booked = false;
-            }
 
             saveDb(db);
             return NextResponse.json({ success: false, error: 'Invalid signature' }, { status: 400 });
