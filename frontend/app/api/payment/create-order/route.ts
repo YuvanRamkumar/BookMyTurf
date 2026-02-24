@@ -48,7 +48,8 @@ export async function POST(request: NextRequest) {
             receipt: `receipt_${booking.id}`,
         };
 
-        const order = await razorpay.orders.create(options);
+        const razorpayInstance = getRazorpayInstance();
+        const order = await razorpayInstance.orders.create(options);
 
         // Save order ID to booking
         const bookingIndex = db.bookings.findIndex(b => b.id === booking_id);

@@ -158,7 +158,14 @@ function ConfirmationContent() {
                         </div>
                         <div className="flex justify-between">
                             <span className="text-slate-500 text-sm">Date & Time</span>
-                            <span className="font-bold text-indigo-600">{booking.slot?.date} • {booking.slot?.start_time} - {booking.slot?.end_time}</span>
+                            <span className="font-bold text-indigo-600">
+                                {booking.slot?.date} • {booking.slot?.start_time} - {booking.slot?.end_time}
+                                {booking.slot?.slot_count > 1 && ` (${booking.slot.slot_count} slots)`}
+                            </span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-slate-500 text-sm">Amount Paid</span>
+                            <span className="font-bold text-emerald-600">{formatCurrency(booking.price_paid + PLATFORM_FEE)}</span>
                         </div>
                     </div>
 
@@ -212,13 +219,18 @@ function ConfirmationContent() {
                             <h3 className="font-black text-slate-900">{booking.turf?.name}</h3>
                             <p className="text-sm text-slate-500 font-bold uppercase tracking-wider mt-0.5">
                                 {booking.slot?.date} • {booking.slot?.start_time} - {booking.slot?.end_time}
+                                {booking.slot?.slot_count > 1 && (
+                                    <span className="ml-2 text-indigo-600">({booking.slot.slot_count} slots)</span>
+                                )}
                             </p>
                         </div>
                     </div>
 
                     <div className="bg-white rounded-3xl border border-slate-100 p-6 space-y-4 shadow-sm">
                         <div className="flex justify-between items-center">
-                            <span className="text-slate-500 font-bold uppercase text-xs tracking-widest">Turf Price</span>
+                            <span className="text-slate-500 font-bold uppercase text-xs tracking-widest">
+                                Turf Price {booking.slot?.slot_count > 1 && `(${booking.slot.slot_count} slots)`}
+                            </span>
                             <span className="font-bold text-slate-900">{formatCurrency(booking.price_paid)}</span>
                         </div>
                         <div className="flex justify-between items-center">

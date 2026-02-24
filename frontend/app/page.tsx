@@ -12,7 +12,7 @@ export default function Home() {
           </div>
           <span className="font-bold text-xl tracking-tight text-slate-900">BookMyTurf</span>
         </Link>
-        <nav className="ml-auto flex gap-4 sm:gap-6">
+        <nav className="ml-auto flex items-center gap-4 sm:gap-6">
           <Link className="text-sm font-medium hover:text-indigo-600 transition-colors" href="/login">
             Login
           </Link>
