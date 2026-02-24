@@ -1,0 +1,69 @@
+﻿
+> turf-booking@0.1.0 build
+> next build
+
+  Γû▓ Next.js 14.2.35
+  - Environments: .env
+
+   Creating an optimized production build ...
+ Γ£ô Compiled successfully
+   Linting and checking validity of types ...
+
+./app/admin/turfs/[id]/slots/page.tsx
+39:8  Warning: React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/bookings/confirmation/page.tsx
+40:8  Warning: React Hook useEffect has a missing dependency: 'fetchBooking'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
+   Collecting page data ...
+   Generating static pages (0/30) ...
+   Generating static pages (7/30) 
+   Generating static pages (14/30) 
+   Generating static pages (22/30) 
+ Γ£ô Generating static pages (30/30)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                              Size     First Load JS
+Γöî Γùï /                                    175 B          96.1 kB
+Γö£ Γùï /_not-found                          873 B          88.1 kB
+Γö£ Γùï /admin/dashboard                     5.23 kB         109 kB
+Γö£ ╞Æ /admin/turfs/[id]/edit               4.32 kB         108 kB
+Γö£ ╞Æ /admin/turfs/[id]/slots              4.75 kB         115 kB
+Γö£ Γùï /admin/turfs/add                     3.82 kB         108 kB
+Γö£ ╞Æ /api/auth/login                      0 B                0 B
+Γö£ ╞Æ /api/auth/logout                     0 B                0 B
+Γö£ ╞Æ /api/auth/me                         0 B                0 B
+Γö£ ╞Æ /api/auth/register                   0 B                0 B
+Γö£ ╞Æ /api/bookings                        0 B                0 B
+Γö£ ╞Æ /api/payment/create-order            0 B                0 B
+Γö£ ╞Æ /api/payment/verify                  0 B                0 B
+Γö£ ╞Æ /api/slots                           0 B                0 B
+Γö£ ╞Æ /api/super-admin/approve             0 B                0 B
+Γö£ ╞Æ /api/super-admin/approve-turf        0 B                0 B
+Γö£ ╞Æ /api/super-admin/data                0 B                0 B
+Γö£ ╞Æ /api/turfs                           0 B                0 B
+Γö£ ╞Æ /api/turfs/[id]                      0 B                0 B
+Γö£ ╞Æ /api/upload                          0 B                0 B
+Γö£ Γùï /bookings                            5.01 kB         109 kB
+Γö£ Γùï /bookings/confirmation               4.38 kB         109 kB
+Γö£ Γùï /bookings/history                    528 B          87.8 kB
+Γö£ Γùï /dashboard                           3.28 kB         107 kB
+Γö£ Γùï /login                               2.42 kB        98.4 kB
+Γö£ Γùï /register                            2.48 kB        98.4 kB
+Γö£ Γùï /super-admin/dashboard               2.28 kB         106 kB
+Γö£ Γùï /super-admin/turfs                   2.91 kB         107 kB
+Γö£ Γùï /super-admin/users                   2.59 kB         107 kB
+Γö£ Γùï /turfs                               4.73 kB         109 kB
+Γöö ╞Æ /turfs/[id]                          4.29 kB         115 kB
++ First Load JS shared by all            87.3 kB
+  Γö£ chunks/117-eceb4b239a2fea00.js       31.7 kB
+  Γö£ chunks/fd9d1056-8f02fde8f1d9ed66.js  53.6 kB
+  Γöö other shared chunks (total)          1.89 kB
+
+
+Γùï  (Static)   prerendered as static content
+╞Æ  (Dynamic)  server-rendered on demand
+
+
