@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb, saveDb, User } from '@/lib/db';
-import { login } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { encrypt } from '@/lib/auth';
+import bcrypt from 'bcryptjs';
 
 export async function POST(request: NextRequest) {
     try {
@@ -10,32 +11,59 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
         }
 
-        const db = getDb();
-        if (db.users.find(u => u.email === email)) {
+        // 1. Check if user already exists
+        const existingUser = await prisma.user.findUnique({
+            where: { email },
+        });
+
+        if (existingUser) {
             return NextResponse.json({ error: 'User already exists' }, { status: 400 });
         }
 
-        const newUser: User = {
-            id: Math.random().toString(36).substring(7),
-            name,
-            email,
-            password, // In real app, bcrypt.hash
-            role,
-            is_approved: role === 'USER' || role === 'SUPER_ADMIN' ? true : false,
-        };
+        // 2. Hash password
+        const password_hash = await bcrypt.hash(password, 10);
 
-        db.users.push(newUser);
-        saveDb(db);
+        // 3. Set approval status
+        const is_approved = (role === 'USER' || role === 'SUPER_ADMIN');
 
-        await login({
+        // 4. Create new user in database
+        const newUser = await prisma.user.create({
+            data: {
+                name,
+                email,
+                password_hash,
+                role: role as any,
+                is_approved,
+            }
+        });
+
+        // 5. Create Session payload
+        const sessionPayload = {
             id: newUser.id,
             email: newUser.email,
             role: newUser.role,
-            name: newUser.name
+            name: newUser.name || newUser.email.split('@')[0],
+            is_approved: newUser.is_approved
+        };
+
+        // 6. Encrypt and set cookie in response explicitly
+        const session = await encrypt(sessionPayload);
+        const response = NextResponse.json({
+            user: sessionPayload,
+            success: true
         });
 
-        return NextResponse.json({ user: { id: newUser.id, name: newUser.name, email: newUser.email, role: newUser.role, is_approved: newUser.is_approved } });
+        response.cookies.set('session', session, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/',
+            maxAge: 60 * 60 * 2 // 2 hours
+        });
+
+        return response;
     } catch (error) {
+        console.error("Registration error:", error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../node_modules/@prisma/client"
 }
 
 datasource db {
@@ -49,6 +48,7 @@ model Turf {
   image_url      String?
   admin_id       String
   admin          User      @relation("AdminTurfs", fields: [admin_id], references: [id])
+  is_approved    Boolean   @default(false)
   created_at     DateTime  @default(now())
   
   slots          Slot[]

@@ -70,7 +70,7 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ success: true, bookingId: booking.id })
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("VERIFY_PAYMENT_ERROR", error)
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
     }

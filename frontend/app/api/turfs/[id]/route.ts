@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb, saveDb } from '@/lib/db';
+import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 
 export async function GET(
@@ -7,14 +7,19 @@ export async function GET(
     { params }: { params: { id: string } }
 ) {
     const { id } = params;
-    const db = getDb();
-    const turf = db.turfs.find(t => t.id === id);
+    try {
+        const turf = await prisma.turf.findUnique({
+            where: { id }
+        });
 
-    if (!turf) {
-        return NextResponse.json({ error: 'Turf not found' }, { status: 404 });
+        if (!turf) {
+            return NextResponse.json({ error: 'Turf not found' }, { status: 404 });
+        }
+
+        return NextResponse.json(turf);
+    } catch (error) {
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
-
-    return NextResponse.json(turf);
 }
 
 export async function PUT(
@@ -29,67 +34,93 @@ export async function PUT(
     try {
         const { id } = params;
         const updates = await request.json();
-        const db = getDb();
-        const turfIndex = db.turfs.findIndex(t => t.id === id);
 
-        if (turfIndex === -1) {
+        const turf = await prisma.turf.findUnique({
+            where: { id }
+        });
+
+        if (!turf) {
             return NextResponse.json({ error: 'Turf not found' }, { status: 404 });
         }
 
-        const turf = db.turfs[turfIndex];
-
-        // Only the owning admin or super admin can edit
         if (session.role === 'ADMIN' && turf.admin_id !== session.id) {
             return NextResponse.json({ error: 'You can only edit your own turfs' }, { status: 403 });
         }
 
-        // Update allowed fields
-        const allowedFields = ['name', 'location', 'sport_type', 'price_per_hour', 'opening_time', 'closing_time', 'image_url', 'status'];
+        const data: any = {};
+        const allowedFields = ['name', 'location', 'sport_type', 'price_per_hour', 'opening_time', 'closing_time', 'image_url'];
+
         for (const field of allowedFields) {
             if (updates[field] !== undefined) {
-                (db.turfs[turfIndex] as any)[field] = field === 'price_per_hour' ? Number(updates[field]) : updates[field];
+                if (field === 'price_per_hour') data[field] = Number(updates[field]);
+                else if (field === 'sport_type') data[field] = updates[field] === 'Football/Cricket' ? 'FOOTBALL_CRICKET' : 'PICKLEBALL';
+                else data[field] = updates[field];
             }
         }
 
-        // If timing changed, regenerate slots for future dates (don't touch booked slots)
+        const updatedTurf = await prisma.turf.update({
+            where: { id },
+            data
+        });
+
+        // Regenerate slots if timing changed
         if (updates.opening_time || updates.closing_time) {
-            const updatedTurf = db.turfs[turfIndex];
             const today = new Date();
+            today.setHours(0, 0, 0, 0);
 
             for (let i = 0; i < 7; i++) {
                 const date = new Date(today);
                 date.setDate(today.getDate() + i);
-                const dateStr = date.toISOString().split('T')[0];
 
-                // Remove only unbooked slots for this date
-                db.slots = db.slots.filter(s =>
-                    !(s.turf_id === id && s.date === dateStr && !s.is_booked)
-                );
+                // Delete only unbooked slots for this date/turf
+                await prisma.slot.deleteMany({
+                    where: {
+                        turf_id: id,
+                        date: date,
+                        is_booked: false
+                    }
+                });
 
-                // Regenerate unbooked slots with new timing
                 const startHour = parseInt(updatedTurf.opening_time.split(':')[0]);
                 const endHour = parseInt(updatedTurf.closing_time.split(':')[0]);
 
+                const newSlots = [];
                 for (let h = startHour; h < endHour; h++) {
-                    const slotId = `s-${id}-${dateStr}-${h}`;
-                    const exists = db.slots.find(s => s.id === slotId);
+                    const startTime = `${h.toString().padStart(2, '0')}:00`;
+                    const endTime = `${(h + 1).toString().padStart(2, '0')}:00`;
+
+                    // Check if a booked slot already exists at this time
+                    const exists = await prisma.slot.findUnique({
+                        where: {
+                            turf_id_date_start_time_end_time: {
+                                turf_id: id,
+                                date: date,
+                                start_time: startTime,
+                                end_time: endTime
+                            }
+                        }
+                    });
+
                     if (!exists) {
-                        db.slots.push({
-                            id: slotId,
+                        newSlots.push({
                             turf_id: id,
-                            date: dateStr,
-                            start_time: `${h.toString().padStart(2, '0')}:00`,
-                            end_time: `${(h + 1).toString().padStart(2, '0')}:00`,
-                            is_booked: false,
+                            date: date,
+                            start_time: startTime,
+                            end_time: endTime,
+                            is_booked: false
                         });
                     }
+                }
+
+                if (newSlots.length > 0) {
+                    await prisma.slot.createMany({ data: newSlots });
                 }
             }
         }
 
-        saveDb(db);
-        return NextResponse.json(db.turfs[turfIndex]);
+        return NextResponse.json(updatedTurf);
     } catch (error) {
+        console.error("Update turf error:", error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
@@ -105,37 +136,32 @@ export async function DELETE(
 
     try {
         const { id } = params;
-        const db = getDb();
-        const turfIndex = db.turfs.findIndex(t => t.id === id);
+        const turf = await prisma.turf.findUnique({
+            where: { id },
+            include: { _count: { select: { bookings: true } } }
+        });
 
-        if (turfIndex === -1) {
+        if (!turf) {
             return NextResponse.json({ error: 'Turf not found' }, { status: 404 });
         }
 
-        const turf = db.turfs[turfIndex];
-
-        // Only the owning admin or super admin can delete
         if (session.role === 'ADMIN' && turf.admin_id !== session.id) {
             return NextResponse.json({ error: 'You can only delete your own turfs' }, { status: 403 });
         }
 
-        // Check for active bookings
-        const activeBookings = db.bookings.filter(b => b.turf_id === id);
-        if (activeBookings.length > 0) {
+        if (turf._count.bookings > 0) {
             return NextResponse.json({
-                error: `Cannot delete: ${activeBookings.length} active booking(s) exist. Cancel them first.`
+                error: `Cannot delete: ${turf._count.bookings} active booking(s) exist. Cancel them first.`
             }, { status: 400 });
         }
 
-        // Remove all slots for this turf
-        db.slots = db.slots.filter(s => s.turf_id !== id);
+        await prisma.turf.delete({
+            where: { id }
+        });
 
-        // Remove the turf
-        db.turfs.splice(turfIndex, 1);
-
-        saveDb(db);
         return NextResponse.json({ message: 'Turf deleted successfully' });
     } catch (error) {
+        console.error("Delete turf error:", error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

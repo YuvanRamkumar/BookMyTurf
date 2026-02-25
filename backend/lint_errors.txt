@@ -1,0 +1,26 @@
+﻿
+> backend@0.1.0 lint
+> eslint
+
+
+D:\Turf booking\BookMyTurf\backend\app\api\auth\register\route.ts
+  54:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Turf booking\BookMyTurf\backend\app\api\payment\create-order\route.ts
+  58:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Turf booking\BookMyTurf\backend\app\api\payment\verify\route.ts
+  73:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Turf booking\BookMyTurf\backend\lib\auth.ts
+  41:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  49:43  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Turf booking\BookMyTurf\backend\middleware.ts
+  4:27  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Turf booking\BookMyTurf\backend\prisma\seed.ts
+  10:11  warning  'superAdmin' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+Γ£û 7 problems (6 errors, 1 warning)
+

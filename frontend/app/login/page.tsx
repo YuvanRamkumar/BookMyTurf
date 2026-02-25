@@ -35,7 +35,6 @@ export default function LoginPage() {
             else if (data.user.role === "ADMIN") router.push("/admin/dashboard");
             else router.push("/dashboard");
 
-            router.refresh();
         } catch (err: any) {
             setError(err.message);
         } finally {

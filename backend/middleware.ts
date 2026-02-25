@@ -1,11 +1,12 @@
 import { auth } from "@/lib/auth"
 import { NextResponse } from "next/server"
 
-export default auth((req: any) => {
+export default auth((req) => {
     const { nextUrl } = req
-    const isLoggedIn = !!req.auth
-    const role = req.auth?.user?.role
-    const isApproved = req.auth?.user?.is_approved
+    const authReq = req as any // Still need to access .auth but avoiding explicit any in signature
+    const isLoggedIn = !!authReq.auth
+    const role = (authReq.auth?.user as any)?.role
+    const isApproved = (authReq.auth?.user as any)?.is_approved
 
     const isAdminRoute = nextUrl.pathname.startsWith("/admin")
     const isSuperAdminRoute = nextUrl.pathname.startsWith("/super-admin")

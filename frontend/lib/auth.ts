@@ -19,11 +19,17 @@ export async function decrypt(input: string): Promise<any> {
     return payload;
 }
 
-export async function login(user: { id: string; email: string; role: string; name: string }) {
+export async function login(user: { id: string; email: string; role: string; name: string; is_approved: boolean }) {
     const expires = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours
     const session = await encrypt(user);
 
-    cookies().set('session', session, { expires, httpOnly: true, path: '/' });
+    cookies().set('session', session, {
+        expires,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/'
+    });
 }
 
 export async function logout() {

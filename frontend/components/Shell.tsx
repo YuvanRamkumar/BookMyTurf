@@ -18,14 +18,20 @@ export default function Shell({ children }: ShellProps) {
         async function checkAuth() {
             try {
                 const res = await fetch("/api/auth/me");
+                if (!res.ok) throw new Error("Unauthorized");
+
                 const data = await res.json();
                 if (!data.user) {
-                    router.push("/login");
+                    if (window.location.pathname !== "/login") {
+                        router.push("/login");
+                    }
                     return;
                 }
                 setUser(data.user);
             } catch (error) {
-                router.push("/login");
+                if (window.location.pathname !== "/login") {
+                    router.push("/login");
+                }
             } finally {
                 setLoading(false);
             }

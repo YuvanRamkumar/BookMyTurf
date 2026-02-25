@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Razorpay from 'razorpay';
-import { getDb, saveDb } from '@/lib/db';
+import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
@@ -22,8 +22,10 @@ export async function POST(request: NextRequest) {
         const { booking_id } = await request.json();
         if (!booking_id) return NextResponse.json({ error: 'Booking ID required' }, { status: 400 });
 
-        const db = getDb();
-        const booking = db.bookings.find(b => b.id === booking_id);
+        const booking = await prisma.booking.findUnique({
+            where: { id: booking_id },
+            include: { turf: true }
+        });
 
         if (!booking) {
             return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
@@ -33,14 +35,14 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
         }
 
-        if (booking.status !== 'pending') {
+        // Prisma enum for status is PENDING (uppercase)
+        if (booking.status !== 'PENDING') {
             return NextResponse.json({ error: 'Booking is not in pending state' }, { status: 400 });
         }
 
         // Amount in paise (1 INR = 100 paise)
-        // Add a small "platform fee" as per requirements
         const platformFee = 20; // Example ₹20
-        const totalAmount = (booking.price_paid + platformFee) * 100;
+        const totalAmount = (booking.turf.price_per_hour + platformFee) * 100;
 
         const options = {
             amount: totalAmount,
@@ -51,10 +53,11 @@ export async function POST(request: NextRequest) {
         const razorpayInstance = getRazorpayInstance();
         const order = await razorpayInstance.orders.create(options);
 
-        // Save order ID to booking
-        const bookingIndex = db.bookings.findIndex(b => b.id === booking_id);
-        db.bookings[bookingIndex].razorpay_order_id = order.id;
-        saveDb(db);
+        // Update booking with order ID
+        await prisma.booking.update({
+            where: { id: booking_id },
+            data: { razorpay_order_id: order.id }
+        });
 
         return NextResponse.json({
             order_id: order.id,
@@ -66,7 +69,6 @@ export async function POST(request: NextRequest) {
     } catch (error: any) {
         console.error("Razorpay Order Error:", error);
 
-        // Check for placeholder keys
         if (process.env.RAZORPAY_KEY_ID?.includes('YOUR_')) {
             return NextResponse.json({
                 error: 'Razorpay keys not configured. Please add your real keys to the .env file.'

@@ -55,7 +55,7 @@ export async function POST(req: Request) {
             key: process.env.RAZORPAY_KEY_ID
         })
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("CREATE_ORDER_ERROR", error)
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
     }

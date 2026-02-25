@@ -1,88 +1,84 @@
 import { PrismaClient, Role, SportType } from '@prisma/client'
 import bcrypt from 'bcryptjs'
+import fs from 'fs'
+import path from 'path'
 
 const prisma = new PrismaClient()
 
 async function main() {
-    const passwordHash = await bcrypt.hash('password123', 10)
+    console.log('Reading data from db.json...')
 
-    // 1. Create Super Admin
-    const superAdmin = await prisma.user.upsert({
-        where: { email: 'superadmin@bookmyturf.com' },
-        update: {},
-        create: {
-            email: 'superadmin@bookmyturf.com',
-            name: 'Super Admin',
-            password_hash: passwordHash,
-            role: Role.SUPER_ADMIN,
-            is_approved: true,
-        },
-    })
+    // Path to db.json (located in frontend/data/db.json relative to project root)
+    // Assuming we run this from the backend directory
+    const dbJsonPath = path.join(__dirname, '../../frontend/data/db.json')
 
-    // 2. Create Approved Admin
-    const approvedAdmin = await prisma.user.upsert({
-        where: { email: 'admin@bookmyturf.com' },
-        update: {},
-        create: {
-            email: 'admin@bookmyturf.com',
-            name: 'John Admin',
-            password_hash: passwordHash,
-            role: Role.ADMIN,
-            is_approved: true,
-        },
-    })
-
-    // 3. Create Turfs
-    const turf1 = await prisma.turf.create({
-        data: {
-            name: 'Arena Sports Hub',
-            location: 'Downtown, Cityville',
-            sport_type: SportType.FOOTBALL_CRICKET,
-            price_per_hour: 1200,
-            opening_time: '06:00',
-            closing_time: '23:00',
-            admin_id: approvedAdmin.id,
-            image_url: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=2000',
-        },
-    })
-
-    const turf2 = await prisma.turf.create({
-        data: {
-            name: 'Smash Pickle Arena',
-            location: 'Westside, Cityville',
-            sport_type: SportType.PICKLEBALL,
-            price_per_hour: 800,
-            opening_time: '07:00',
-            closing_time: '22:00',
-            admin_id: approvedAdmin.id,
-            image_url: 'https://images.unsplash.com/photo-1626225443592-d74828113401?q=80&w=2000',
-        },
-    })
-
-    // 4. Generate today's slots for both turfs
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-
-    const generateSlots = async (turfId: string, open: number, close: number) => {
-        const slots = []
-        for (let hour = open; hour < close; hour++) {
-            const startTime = `${hour.toString().padStart(2, '0')}:00`
-            const endTime = `${(hour + 1).toString().padStart(2, '0')}:00`
-            slots.push({
-                turf_id: turfId,
-                date: today,
-                start_time: startTime,
-                end_time: endTime,
-                is_booked: false,
-            })
-        }
-        await prisma.slot.createMany({ data: slots })
+    if (!fs.existsSync(dbJsonPath)) {
+        throw new Error(`File not found: ${dbJsonPath}`)
     }
 
-    await generateSlots(turf1.id, 6, 23)
-    await generateSlots(turf2.id, 7, 22)
+    const rawData = fs.readFileSync(dbJsonPath, 'utf8')
+    const data = JSON.parse(rawData)
 
-    console.log('Seed data created successfully')
+    console.log('Cleaning existing data...')
+    // Delete in reverse order of dependency
+    await prisma.booking.deleteMany({})
+    await prisma.slot.deleteMany({})
+    await prisma.turf.deleteMany({})
+    await prisma.user.deleteMany({})
+
+    console.log('Seeding Users...')
+    for (const user of data.users) {
+        const passwordHash = await bcrypt.hash(user.password, 10)
+        await prisma.user.create({
+            data: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                password_hash: passwordHash,
+                role: user.role as Role,
+                is_approved: user.is_approved,
+            }
+        })
+    }
+
+    console.log('Seeding Turfs...')
+    for (const turf of data.turfs) {
+        await prisma.turf.create({
+            data: {
+                id: turf.id,
+                name: turf.name,
+                location: turf.location,
+                sport_type: turf.sport_type === 'Football/Cricket' ? SportType.FOOTBALL_CRICKET : SportType.PICKLEBALL,
+                price_per_hour: turf.price_per_hour,
+                opening_time: turf.opening_time,
+                closing_time: turf.closing_time,
+                image_url: turf.image_url,
+                admin_id: turf.admin_id,
+                is_approved: turf.is_approved,
+            }
+        })
+    }
+
+    console.log('Seeding Slots...')
+    // Inserting slots in batches to avoid overwhelming the connection
+    const slotsData = data.slots.map((slot: any) => ({
+        id: slot.id,
+        turf_id: slot.turf_id,
+        date: new Date(slot.date), // schema.prisma expects DateTime (@db.Date)
+        start_time: slot.start_time,
+        end_time: slot.end_time,
+        is_booked: slot.is_booked,
+    }))
+
+    // Batch create for performance
+    const batchSize = 100
+    for (let i = 0; i < slotsData.length; i += batchSize) {
+        const batch = slotsData.slice(i, i + batchSize)
+        await prisma.slot.createMany({ data: batch })
+        console.log(`Seeded ${Math.min(i + batchSize, slotsData.length)} / ${slotsData.length} slots`)
+    }
+
+    console.log('Seed data imported successfully from db.json')
 }
 
 main()

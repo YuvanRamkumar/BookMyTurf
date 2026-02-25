@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb, saveDb } from '@/lib/db';
+import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
@@ -10,24 +10,15 @@ export async function POST(request: NextRequest) {
 
     try {
         const { userId, approve } = await request.json();
-        const db = getDb();
-        const userIndex = db.users.findIndex(u => u.id === userId);
 
-        if (userIndex === -1) {
-            return NextResponse.json({ error: 'User not found' }, { status: 404 });
-        }
+        await prisma.user.update({
+            where: { id: userId },
+            data: { is_approved: !!approve }
+        });
 
-        if (approve) {
-            db.users[userIndex].is_approved = true;
-        } else {
-            // Reject - maybe delete user or just leave as unapproved
-            // For prototype, we'll just keep it unapproved or we could filter out rejected.
-            db.users[userIndex].is_approved = false;
-        }
-
-        saveDb(db);
         return NextResponse.json({ success: true });
     } catch (error) {
+        console.error("Approve user error:", error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
