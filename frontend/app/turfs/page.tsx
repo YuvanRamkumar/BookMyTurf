@@ -232,7 +232,7 @@ export default function TurfListing() {
                                 href={`/turfs/${turf.id}`}
                                 className={cn(
                                     "group bg-white rounded-[40px] border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-indigo-100/50 transition-all duration-500 overflow-hidden flex flex-col",
-                                    turf.status !== 'active' && "grayscale opacity-80 bg-slate-50"
+                                    turf.status !== 'ACTIVE' && "grayscale opacity-80 bg-slate-50"
                                 )}
                             >
                                 <div className="aspect-[16/11] bg-slate-50 relative overflow-hidden">
@@ -267,12 +267,12 @@ export default function TurfListing() {
                                         {turf.location}
                                     </div>
 
-                                    {turf.status !== 'active' && (
+                                    {turf.status !== 'ACTIVE' && (
                                         <div className={cn(
                                             "inline-flex px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border w-fit mb-4",
-                                            turf.status === 'maintenance' ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-rose-50 text-rose-700 border-rose-200"
+                                            turf.status === 'MAINTENANCE' ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-rose-50 text-rose-700 border-rose-200"
                                         )}>
-                                            {turf.status === 'maintenance' ? '🛠️ Under Maintenance' : '🔒 Temporarily Closed'}
+                                            {turf.status === 'MAINTENANCE' ? '🛠️ Under Maintenance' : '🔒 Temporarily Closed'}
                                         </div>
                                     )}
 

@@ -53,7 +53,8 @@ export async function POST(req: Request) {
         )
     } catch (error: unknown) {
         if (error instanceof z.ZodError) {
-            return NextResponse.json({ error: error.issues }, { status: 400 })
+            const errorMessages = error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`).join(', ');
+            return NextResponse.json({ error: `Validation failed: ${errorMessages}` }, { status: 400 })
         }
         console.error("REGISTER_ERROR", error)
         return NextResponse.json(

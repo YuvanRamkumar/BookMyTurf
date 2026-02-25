@@ -59,15 +59,15 @@ export default function SuperAdminTurfs() {
                                     </div>
                                     <div className="flex flex-col items-end">
                                         {!turf.is_approved && (
-                                            <span className="bg-amber-100 text-amber-700 text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-tighter mb-2">
+                                            <span className="bg-amber-50 text-amber-700 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest mb-2 border border-amber-200">
                                                 New Proposal
                                             </span>
                                         )}
                                         {turf.is_approved && (
                                             <span className={cn(
                                                 "text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-tighter border",
-                                                turf.status === 'active' ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
-                                                    turf.status === 'maintenance' ? "bg-amber-50 text-amber-600 border-amber-100" :
+                                                turf.status === 'ACTIVE' ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
+                                                    turf.status === 'MAINTENANCE' ? "bg-amber-50 text-amber-600 border-amber-100" :
                                                         "bg-rose-50 text-rose-600 border-rose-100"
                                             )}>
                                                 {turf.status}
@@ -80,13 +80,13 @@ export default function SuperAdminTurfs() {
                                     <div className="grid grid-cols-2 gap-3 mb-6">
                                         <button
                                             onClick={() => handleApproveTurf(turf.id, true)}
-                                            className="bg-emerald-600 text-white py-3 rounded-2xl text-xs font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100"
+                                            className="bg-emerald-600 text-white py-3.5 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100/50"
                                         >
                                             Approve
                                         </button>
                                         <button
                                             onClick={() => handleApproveTurf(turf.id, false)}
-                                            className="bg-rose-50 text-rose-600 py-3 rounded-2xl text-xs font-bold hover:bg-rose-100 transition-all"
+                                            className="bg-rose-50 text-rose-600 py-3.5 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-rose-100 transition-all border border-rose-100"
                                         >
                                             Reject
                                         </button>

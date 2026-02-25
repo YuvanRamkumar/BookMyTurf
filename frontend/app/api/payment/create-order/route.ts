@@ -35,27 +35,38 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
         }
 
-        // Prisma enum for status is PENDING (uppercase)
-        if (booking.status !== 'PENDING') {
-            return NextResponse.json({ error: 'Booking is not in pending state' }, { status: 400 });
+        // Find all pending bookings for this user and turf to group them
+        const pendingBookings = await prisma.booking.findMany({
+            where: {
+                user_id: session.id,
+                turf_id: booking.turf_id,
+                status: 'PENDING'
+            },
+            include: { turf: true }
+        });
+
+        if (pendingBookings.length === 0) {
+            return NextResponse.json({ error: 'No pending bookings found' }, { status: 400 });
         }
 
         // Amount in paise (1 INR = 100 paise)
         const platformFee = 20; // Example ₹20
-        const totalAmount = (booking.turf.price_per_hour + platformFee) * 100;
+        const totalTurfPrice = pendingBookings.reduce((sum, b) => sum + b.turf.price_per_hour, 0);
+        const totalAmount = Math.round((totalTurfPrice + platformFee) * 100);
 
         const options = {
             amount: totalAmount,
             currency: "INR",
-            receipt: `receipt_${booking.id}`,
+            receipt: `group_${session.id.slice(0, 8)}_${Date.now()}`,
         };
 
-        const razorpayInstance = getRazorpayInstance();
-        const order = await razorpayInstance.orders.create(options);
+        const order = await razorpay.orders.create(options);
 
-        // Update booking with order ID
-        await prisma.booking.update({
-            where: { id: booking_id },
+        // Update ALL pending bookings for this user/turf with the SAME order ID
+        await prisma.booking.updateMany({
+            where: {
+                id: { in: pendingBookings.map(b => b.id) }
+            },
             data: { razorpay_order_id: order.id }
         });
 

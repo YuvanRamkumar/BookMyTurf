@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
@@ -26,40 +26,40 @@ export async function POST(request: NextRequest) {
 
         const isValid = expectedSignature === razorpay_signature;
 
-        const bookings = await prisma.booking.findMany({
+        const booking = await prisma.booking.findUnique({
             where: { razorpay_order_id }
         });
 
-        if (bookings.length === 0) {
-            return NextResponse.json({ error: 'Bookings not found for this order' }, { status: 404 });
+        if (!booking) {
+            return NextResponse.json({ error: 'Booking not found for this order' }, { status: 404 });
         }
 
         if (isValid) {
-            // Update all bookings status and save payment ID
-            await prisma.booking.updateMany({
-                where: { razorpay_order_id },
+            // Update booking status and save payment ID
+            await prisma.booking.update({
+                where: { id: booking.id },
                 data: {
                     status: 'CONFIRMED',
                     razorpay_payment_id: razorpay_payment_id
                 }
             });
 
-            // Mark all slots as booked
-            await prisma.slot.updateMany({
-                where: { id: { in: bookings.map(b => b.slot_id) } },
+            // Mark slot as booked (redundant but safe)
+            await prisma.slot.update({
+                where: { id: booking.slot_id },
                 data: { is_booked: true }
             });
 
-            return NextResponse.json({ success: true, message: 'Payment verified and bookings confirmed' });
+            return NextResponse.json({ success: true, message: 'Payment verified and booking confirmed' });
         } else {
-            // Mark bookings failed and release the slots
-            await prisma.booking.updateMany({
-                where: { razorpay_order_id },
+            // Mark booking failed and release the slot
+            await prisma.booking.update({
+                where: { id: booking.id },
                 data: { status: 'FAILED' }
             });
 
-            await prisma.slot.updateMany({
-                where: { id: { in: bookings.map(b => b.slot_id) } },
+            await prisma.slot.update({
+                where: { id: booking.slot_id },
                 data: { is_booked: false }
             });
 

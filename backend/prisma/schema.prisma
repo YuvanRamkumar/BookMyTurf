@@ -7,6 +7,66 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id            String    @id @default(uuid())
+  name          String?
+  email         String    @unique
+  password_hash String
+  role          Role      @default(USER)
+  is_approved   Boolean   @default(false)
+  created_at    DateTime  @default(now())
+  bookings      Booking[]
+  turfs         Turf[]    @relation("AdminTurfs")
+}
+
+model Turf {
+  id             String     @id @default(uuid())
+  name           String
+  location       String
+  sport_type     SportType
+  price_per_hour Float
+  opening_time   String
+  closing_time   String
+  image_url      String?
+  admin_id       String
+  created_at     DateTime   @default(now())
+  is_approved    Boolean    @default(false)
+  status         TurfStatus @default(ACTIVE)
+  bookings       Booking[]
+  slots          Slot[]
+  admin          User       @relation("AdminTurfs", fields: [admin_id], references: [id])
+}
+
+model Slot {
+  id         String   @id @default(uuid())
+  turf_id    String
+  date       DateTime @db.Date
+  start_time String
+  end_time   String
+  is_booked  Boolean  @default(false)
+  created_at DateTime @default(now())
+  booking    Booking?
+  turf       Turf     @relation(fields: [turf_id], references: [id], onDelete: Cascade)
+
+  @@unique([turf_id, date, start_time, end_time])
+  @@index([date])
+  @@index([turf_id])
+}
+
+model Booking {
+  id                  String        @id @default(uuid())
+  user_id             String
+  turf_id             String
+  slot_id             String        @unique
+  status              BookingStatus @default(PENDING)
+  razorpay_order_id   String
+  razorpay_payment_id String?
+  created_at          DateTime      @default(now())
+  slot                Slot          @relation(fields: [slot_id], references: [id])
+  turf                Turf          @relation(fields: [turf_id], references: [id])
+  user                User          @relation(fields: [user_id], references: [id])
+}
+
 enum Role {
   USER
   ADMIN
@@ -24,64 +84,8 @@ enum BookingStatus {
   FAILED
 }
 
-model User {
-  id            String    @id @default(uuid())
-  name          String?
-  email         String    @unique
-  password_hash String
-  role          Role      @default(USER)
-  is_approved   Boolean   @default(false)
-  created_at    DateTime  @default(now())
-  
-  turfs         Turf[]    @relation("AdminTurfs")
-  bookings      Booking[]
-}
-
-model Turf {
-  id             String    @id @default(uuid())
-  name           String
-  location       String
-  sport_type     SportType
-  price_per_hour Float
-  opening_time   String    // e.g., "06:00"
-  closing_time   String    // e.g., "22:00"
-  image_url      String?
-  admin_id       String
-  admin          User      @relation("AdminTurfs", fields: [admin_id], references: [id])
-  is_approved    Boolean   @default(false)
-  created_at     DateTime  @default(now())
-  
-  slots          Slot[]
-  bookings       Booking[]
-}
-
-model Slot {
-  id         String   @id @default(uuid())
-  turf_id    String
-  turf       Turf     @relation(fields: [turf_id], references: [id], onDelete: Cascade)
-  date       DateTime @db.Date
-  start_time String   // e.g., "09:00"
-  end_time   String   // e.g., "10:00"
-  is_booked  Boolean  @default(false)
-  created_at DateTime @default(now())
-  
-  booking    Booking?
-
-  @@index([date])
-  @@index([turf_id])
-  @@unique([turf_id, date, start_time, end_time])
-}
-
-model Booking {
-  id                  String        @id @default(uuid())
-  user_id             String
-  user                User          @relation(fields: [user_id], references: [id])
-  turf_id             String
-  turf                Turf          @relation(fields: [turf_id], references: [id])
-  slot_id             String        @unique
-  slot                Slot          @relation(fields: [slot_id], references: [id])
-  status              BookingStatus @default(PENDING)
-  razorpay_order_id   String        @unique
-  razorpay_payment_id String?
-  created_at          DateTime      @default(now())
+enum TurfStatus {
+  ACTIVE
+  MAINTENANCE
+  CLOSED
 }

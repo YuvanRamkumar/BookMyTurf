@@ -48,7 +48,12 @@ export async function PUT(
         }
 
         const data: any = {};
-        const allowedFields = ['name', 'location', 'sport_type', 'price_per_hour', 'opening_time', 'closing_time', 'image_url'];
+        const allowedFields = ['name', 'location', 'sport_type', 'price_per_hour', 'opening_time', 'closing_time', 'image_url', 'status'];
+
+        // Validate status if provided
+        if (updates.status && !['ACTIVE', 'MAINTENANCE', 'CLOSED'].includes(updates.status)) {
+            return NextResponse.json({ error: 'Invalid status. Must be ACTIVE, MAINTENANCE, or CLOSED' }, { status: 400 });
+        }
 
         for (const field of allowedFields) {
             if (updates[field] !== undefined) {

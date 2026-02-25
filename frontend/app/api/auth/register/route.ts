@@ -5,10 +5,20 @@ import bcrypt from 'bcryptjs';
 
 export async function POST(request: NextRequest) {
     try {
-        const { name, email, password, role } = await request.json();
+        const body = await request.json();
+        const { name, email, password, role } = body;
 
-        if (!name || !email || !password || !role) {
-            return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
+        const missingFields = [];
+        if (!name) missingFields.push('name');
+        if (!email) missingFields.push('email');
+        if (!password) missingFields.push('password');
+        if (!role) missingFields.push('role');
+
+        if (missingFields.length > 0) {
+            return NextResponse.json({
+                error: `Missing required fields: ${missingFields.join(', ')}`,
+                details: body
+            }, { status: 400 });
         }
 
         // 1. Check if user already exists

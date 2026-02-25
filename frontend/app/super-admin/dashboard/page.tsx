@@ -21,6 +21,21 @@ export default function SuperAdminDashboard() {
         fetchData();
     }, []);
 
+    const handleApproveTurf = async (turfId: string, approve: boolean) => {
+        try {
+            const res = await fetch("/api/super-admin/approve-turf", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ turfId, approve })
+            });
+            if (res.ok) {
+                fetchData(); // Refresh data
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
     if (loading && !data) return <Shell><div className="flex justify-center py-20"><Loader2 className="animate-spin text-indigo-600 w-10 h-10" /></div></Shell>;
 
     return (
@@ -50,6 +65,63 @@ export default function SuperAdminDashboard() {
                             <div className="text-4xl font-black text-indigo-600">{data?.stats.totalBookings}</div>
                         </div>
                     </div>
+
+                    <section className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm">
+                        <h2 className="text-2xl font-black text-slate-900 mb-8">Venue Status Monitoring</h2>
+                        <div className="overflow-x-auto">
+                            <table className="w-full border-separate border-spacing-y-4">
+                                <thead>
+                                    <tr className="text-left text-slate-400 text-xs font-black uppercase tracking-widest">
+                                        <th className="px-6 py-2">Arena Name</th>
+                                        <th className="px-6 py-2">Owner</th>
+                                        <th className="px-6 py-2">Status</th>
+                                        <th className="px-6 py-2">Approval</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {data?.turfs.map((turf: any) => (
+                                        <tr key={turf.id} className="bg-slate-50 group transition-all hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 rounded-2xl">
+                                            <td className="px-6 py-5 first:rounded-l-2xl">
+                                                <div className="font-bold text-slate-900">{turf.name}</div>
+                                                <div className="text-xs text-slate-400">{turf.location}</div>
+                                            </td>
+                                            <td className="px-6 py-5 text-sm font-medium text-slate-600">{turf.admin?.name || 'Unknown'}</td>
+                                            <td className="px-6 py-5">
+                                                <div className={cn(
+                                                    "inline-flex px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border",
+                                                    turf.status === 'ACTIVE' ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
+                                                        turf.status === 'MAINTENANCE' ? "bg-amber-50 text-amber-600 border-amber-100" :
+                                                            "bg-rose-50 text-rose-600 border-rose-100"
+                                                )}>
+                                                    {turf.status}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-5 last:rounded-r-2xl">
+                                                {turf.is_approved ? (
+                                                    <span className="flex items-center text-xs font-bold text-emerald-600"><CheckCircle size={14} className="mr-1" /> Active</span>
+                                                ) : (
+                                                    <div className="flex items-center space-x-2">
+                                                        <button
+                                                            onClick={() => handleApproveTurf(turf.id, true)}
+                                                            className="px-3 py-1 bg-emerald-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-100"
+                                                        >
+                                                            Approve
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleApproveTurf(turf.id, false)}
+                                                            className="px-3 py-1 bg-rose-500 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-rose-600 transition-colors shadow-lg shadow-rose-100"
+                                                        >
+                                                            Reject
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
 
                     <section className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm">
                         <h2 className="text-2xl font-black text-slate-900 mb-8">Recent Activity</h2>
