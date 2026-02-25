@@ -1,16 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Trophy, ArrowRight, Loader2 } from "lucide-react";
 
-export default function LoginPage() {
+function LoginContent() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const callbackUrl = searchParams.get("callbackUrl");
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -30,10 +32,16 @@ export default function LoginPage() {
                 throw new Error(data.error || "Login failed");
             }
 
-            // Successful login
-            if (data.user.role === "SUPER_ADMIN") router.push("/super-admin/dashboard");
-            else if (data.user.role === "ADMIN") router.push("/admin/dashboard");
-            else router.push("/dashboard");
+            // Redirect handling
+            if (callbackUrl) {
+                router.push(callbackUrl);
+            } else if (data.user.role === "SUPER_ADMIN") {
+                router.push("/super-admin/dashboard");
+            } else if (data.user.role === "ADMIN") {
+                router.push("/admin/dashboard");
+            } else {
+                router.push("/dashboard");
+            }
 
         } catch (err: any) {
             setError(err.message);
@@ -132,5 +140,13 @@ export default function LoginPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-indigo-600" /></div>}>
+            <LoginContent />
+        </Suspense>
     );
 }

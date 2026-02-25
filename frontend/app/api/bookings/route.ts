@@ -87,24 +87,48 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'turf_id and slot_ids (array) are required' }, { status: 400 });
         }
 
+        // Check if any of these slots are already CONFIRMED
+        const existingConfirmed = await prisma.booking.findMany({
+            where: {
+                slot_id: { in: slot_ids },
+                status: 'CONFIRMED'
+            }
+        });
+
+        if (existingConfirmed.length > 0) {
+            return NextResponse.json({ error: 'One or more slots are already booked' }, { status: 400 });
+        }
+
         const batchId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
 
-        const bookings = await prisma.$transaction(
-            slot_ids.map((slot_id) =>
-                prisma.booking.create({
-                    data: {
-                        user_id: session.id,
-                        turf_id,
-                        slot_id,
-                        status: 'PENDING',
-                        razorpay_order_id: batchId,
-                    }
-                })
-            )
-        );
+        const result = await prisma.$transaction(async (tx) => {
+            // Delete any existing PENDING bookings for these slots to allow re-booking
+            await tx.booking.deleteMany({
+                where: {
+                    slot_id: { in: slot_ids },
+                    status: 'PENDING'
+                }
+            });
+
+            // Create new PENDING bookings
+            const newBookings = await Promise.all(
+                slot_ids.map((slot_id) =>
+                    tx.booking.create({
+                        data: {
+                            user_id: session.id,
+                            turf_id,
+                            slot_id,
+                            status: 'PENDING',
+                            razorpay_order_id: batchId,
+                        }
+                    })
+                )
+            );
+            return newBookings;
+        });
 
         // Return the first booking ID for the confirmation page
-        return NextResponse.json(bookings[0], { status: 201 });
+        return NextResponse.json(result[0], { status: 201 });
     } catch (error: any) {
         console.error("Create booking error:", error);
         if (error.code === 'P2002') {

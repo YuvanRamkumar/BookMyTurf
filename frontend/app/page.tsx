@@ -37,14 +37,14 @@ export default function Home() {
               </div>
               <div className="space-x-4">
                 <Link
-                  href="/register"
-                  className="inline-flex h-11 items-center justify-center rounded-md bg-indigo-600 px-8 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-700 disabled:pointer-events-none disabled:opacity-50"
+                  href="/turfs"
+                  className="inline-flex h-12 items-center justify-center rounded-2xl bg-indigo-600 px-10 py-2 text-sm font-bold text-white shadow-xl shadow-indigo-200 transition-all hover:bg-indigo-700 hover:scale-105"
                 >
                   Start Booking Now
                 </Link>
                 <Link
-                  href="/login"
-                  className="inline-flex h-11 items-center justify-center rounded-md border border-slate-200 bg-white px-8 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 disabled:pointer-events-none disabled:opacity-50"
+                  href="/register"
+                  className="inline-flex h-12 items-center justify-center rounded-2xl border border-slate-200 bg-white px-10 py-2 text-sm font-bold text-slate-600 shadow-sm transition-all hover:bg-slate-50 hover:text-slate-900 hover:scale-105"
                 >
                   Partner with Us
                 </Link>

@@ -17,8 +17,8 @@ import {
 import { cn } from "@/lib/utils";
 
 interface SidebarProps {
-    role: "USER" | "ADMIN" | "SUPER_ADMIN";
-    userName: string;
+    role?: "USER" | "ADMIN" | "SUPER_ADMIN";
+    userName?: string;
 }
 
 export default function Sidebar({ role, userName }: SidebarProps) {
@@ -31,9 +31,13 @@ export default function Sidebar({ role, userName }: SidebarProps) {
         router.refresh();
     };
 
+    const guestLinks = [
+        { href: "/turfs", icon: Search, label: "Browse Turfs" },
+    ];
+
     const userLinks = [
         { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-        { href: "/turfs", icon: Search, label: "Browse Turfs" },
+        ...guestLinks,
         { href: "/bookings", icon: CalendarCheck, label: "My Bookings" },
         { href: "/bookings/history", icon: History, label: "History" },
     ];
@@ -41,23 +45,27 @@ export default function Sidebar({ role, userName }: SidebarProps) {
     const adminLinks = [
         { href: "/admin/dashboard", icon: LayoutDashboard, label: "Admin Panel" },
         { href: "/admin/turfs/add", icon: PlusCircle, label: "Add Turf" },
+        { href: "/turfs", icon: Search, label: "Browse Turfs" },
     ];
 
     const superAdminLinks = [
         { href: "/super-admin/dashboard", icon: LayoutDashboard, label: "Super Dashboard" },
         { href: "/super-admin/users", icon: Users, label: "Manage Users" },
         { href: "/super-admin/turfs", icon: Trophy, label: "Manage Turfs" },
+        { href: "/turfs", icon: Search, label: "Browse Turfs" },
     ];
 
-    const links = role === "SUPER_ADMIN" ? superAdminLinks : role === "ADMIN" ? adminLinks : userLinks;
+    const links = !role ? guestLinks : role === "SUPER_ADMIN" ? superAdminLinks : role === "ADMIN" ? adminLinks : userLinks;
 
     return (
         <div className="flex bg-white border-r border-slate-200 h-screen w-64 flex-col fixed left-0 top-0">
             <div className="p-6 flex items-center space-x-2">
-                <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-                    <Trophy className="text-white w-5 h-5" />
-                </div>
-                <span className="text-xl font-bold tracking-tight text-slate-900">BookMyTurf</span>
+                <Link href="/" className="flex items-center space-x-2">
+                    <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+                        <Trophy className="text-white w-5 h-5" />
+                    </div>
+                    <span className="text-xl font-bold tracking-tight text-slate-900">BookMyTurf</span>
+                </Link>
             </div>
 
             <nav className="flex-1 px-4 py-4 space-y-1">
@@ -86,23 +94,42 @@ export default function Sidebar({ role, userName }: SidebarProps) {
             </nav>
 
             <div className="p-4 border-t border-slate-200 mt-auto">
-                <div className="flex items-center space-x-3 mb-6 px-2">
-                    <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-600">
-                        {userName.charAt(0)}
-                    </div>
-                    <div className="flex flex-col overflow-hidden">
-                        <span className="text-sm font-semibold text-slate-900 truncate">{userName}</span>
-                        <span className="text-xs text-slate-400 truncate font-medium uppercase tracking-wider">{role}</span>
-                    </div>
-                </div>
+                {userName ? (
+                    <>
+                        <div className="flex items-center space-x-3 mb-6 px-2">
+                            <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-600">
+                                {userName.charAt(0)}
+                            </div>
+                            <div className="flex flex-col overflow-hidden">
+                                <span className="text-sm font-semibold text-slate-900 truncate">{userName}</span>
+                                <span className="text-xs text-slate-400 truncate font-medium uppercase tracking-wider">{role}</span>
+                            </div>
+                        </div>
 
-                <button
-                    onClick={handleLogout}
-                    className="flex items-center space-x-3 w-full px-3 py-3 rounded-xl text-rose-500 hover:bg-rose-50 transition-colors font-medium"
-                >
-                    <LogOut size={20} />
-                    <span>Logout</span>
-                </button>
+                        <button
+                            onClick={handleLogout}
+                            className="flex items-center space-x-3 w-full px-3 py-3 rounded-xl text-rose-500 hover:bg-rose-50 transition-colors font-medium"
+                        >
+                            <LogOut size={20} />
+                            <span>Logout</span>
+                        </button>
+                    </>
+                ) : (
+                    <div className="space-y-2">
+                        <Link
+                            href="/login"
+                            className="flex items-center justify-center w-full px-3 py-3 rounded-xl bg-indigo-600 text-white font-bold text-sm hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100"
+                        >
+                            Login
+                        </Link>
+                        <Link
+                            href="/register"
+                            className="flex items-center justify-center w-full px-3 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition-all"
+                        >
+                            Register
+                        </Link>
+                    </div>
+                )}
             </div>
         </div>
     );

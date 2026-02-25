@@ -44,7 +44,39 @@ export default function TurfDetails() {
         );
     };
 
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+    useEffect(() => {
+        fetch("/api/auth/me")
+            .then(res => res.json())
+            .then(data => {
+                setIsLoggedIn(!!data.user);
+
+                // Restore slots from session storage if any
+                const saved = sessionStorage.getItem(`pending_slots_${id}`);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        setSelectedSlots(parsed);
+                        // Clear it once restored
+                        sessionStorage.removeItem(`pending_slots_${id}`);
+
+                        if (data.user) {
+                            setMessage({ type: 'success', text: "Welcome back! Your selected slots are ready for booking." });
+                        }
+                    }
+                }
+            });
+    }, [id]);
+
     const handleBooking = async () => {
+        if (!isLoggedIn) {
+            // Save current selection to session storage
+            sessionStorage.setItem(`pending_slots_${id}`, JSON.stringify(selectedSlots));
+            setMessage({ type: 'success', text: "Redirecting to login..." });
+            router.push(`/login?callbackUrl=${encodeURIComponent(window.location.pathname)}`);
+            return;
+        }
         if (selectedSlots.length === 0) return;
         setBookingLoading(true);
         setMessage(null);

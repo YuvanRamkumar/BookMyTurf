@@ -18,18 +18,22 @@ export default function Shell({ children }: ShellProps) {
         async function checkAuth() {
             try {
                 const res = await fetch("/api/auth/me");
-                if (!res.ok) throw new Error("Unauthorized");
-
                 const data = await res.json();
+
+                const isPublicPath = window.location.pathname === "/turfs" ||
+                    window.location.pathname.startsWith("/turfs/");
+
                 if (!data.user) {
-                    if (window.location.pathname !== "/login") {
+                    if (!isPublicPath && window.location.pathname !== "/login" && window.location.pathname !== "/register") {
                         router.push("/login");
                     }
                     return;
                 }
                 setUser(data.user);
             } catch (error) {
-                if (window.location.pathname !== "/login") {
+                const isPublicPath = window.location.pathname === "/turfs" ||
+                    window.location.pathname.startsWith("/turfs/");
+                if (!isPublicPath && window.location.pathname !== "/login" && window.location.pathname !== "/register") {
                     router.push("/login");
                 }
             } finally {
@@ -47,11 +51,9 @@ export default function Shell({ children }: ShellProps) {
         );
     }
 
-    if (!user) return null;
-
     return (
         <div className="min-h-screen bg-slate-50 flex">
-            <Sidebar role={user.role} userName={user.name} />
+            <Sidebar role={user?.role} userName={user?.name} />
             <main className="flex-1 ml-64 p-8 overflow-y-auto">
                 {children}
             </main>
