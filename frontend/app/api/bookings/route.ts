@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
+    const turfId = searchParams.get('turfId');
 
     try {
         let where: any = {};
@@ -19,11 +20,17 @@ export async function GET(request: NextRequest) {
             where.turf = { admin_id: session.id };
         }
 
+        if (turfId) {
+            where.turf_id = turfId;
+        }
+
         // Status-based filtering
         if (status === 'active') {
             where.status = 'CONFIRMED';
         } else if (status === 'history') {
-            where.status = { in: ['FAILED'] }; // Add logic for 'EXPIRED' if needed
+            where.status = { in: ['FAILED'] };
+        } else if (status) {
+            where.status = status.toUpperCase();
         }
 
         const bookings = await prisma.booking.findMany({

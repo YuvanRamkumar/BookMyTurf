@@ -14,12 +14,12 @@ export async function POST(request: NextRequest) {
         if (approve) {
             await prisma.turf.update({
                 where: { id: turfId },
-                data: { is_approved: true }
+                data: { status: 'APPROVED' }
             });
         } else {
-            // Reject - delete the turf and cascade slots/bookings
-            await prisma.turf.delete({
-                where: { id: turfId }
+            await prisma.turf.update({
+                where: { id: turfId },
+                data: { status: 'REJECTED' }
             });
         }
 

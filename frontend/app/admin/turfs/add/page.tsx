@@ -11,12 +11,29 @@ export default function AddTurf() {
     const [formData, setFormData] = useState({
         name: "",
         location: "",
+        description: "",
+        amenities: [] as string[],
+        precautions: [] as string[],
         sport_type: "Football/Cricket" as const,
         price_per_hour: "",
         opening_time: "06:00",
         closing_time: "22:00",
         image_url: "",
     });
+
+    const amenitiesList = [
+        "Parking", "Floodlights", "Washroom", "Changing Room",
+        "Drinking Water", "Seating Area", "Cafeteria", "Locker Room"
+    ];
+
+    const handleAmenityChange = (amenity: string) => {
+        setFormData(prev => ({
+            ...prev,
+            amenities: prev.amenities.includes(amenity)
+                ? prev.amenities.filter(a => a !== amenity)
+                : [...prev.amenities, amenity]
+        }));
+    };
     const [loading, setLoading] = useState(false);
     const [imageUploading, setImageUploading] = useState(false);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -185,6 +202,45 @@ export default function AddTurf() {
                                 value={formData.price_per_hour}
                                 onChange={(e) => setFormData({ ...formData, price_per_hour: e.target.value })}
                                 className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-600 font-medium text-slate-800"
+                            />
+                        </div>
+
+                        <div className="space-y-2 md:col-span-2">
+                            <label className="text-sm font-bold text-slate-700 uppercase tracking-wider">Description</label>
+                            <textarea
+                                placeholder="Tell us more about your arena..."
+                                value={formData.description}
+                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-600 font-medium text-slate-800 h-32 resize-none"
+                            />
+                        </div>
+
+                        <div className="space-y-4 md:col-span-2">
+                            <label className="text-sm font-bold text-slate-700 uppercase tracking-wider block">Amenities</label>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                {amenitiesList.map(amenity => (
+                                    <label key={amenity} className="flex items-center space-x-3 cursor-pointer group">
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.amenities.includes(amenity)}
+                                            onChange={() => handleAmenityChange(amenity)}
+                                            className="w-5 h-5 rounded-lg border-2 border-slate-200 text-indigo-600 focus:ring-indigo-600 transition-all cursor-pointer"
+                                        />
+                                        <span className={`text-sm font-bold transition-colors ${formData.amenities.includes(amenity) ? 'text-indigo-600' : 'text-slate-500 group-hover:text-slate-700'}`}>
+                                            {amenity}
+                                        </span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="space-y-2 md:col-span-2">
+                            <label className="text-sm font-bold text-slate-700 uppercase tracking-wider">Precautions & Rules (One per line)</label>
+                            <textarea
+                                placeholder="e.g. Non-marking shoes required&#10;No smoking"
+                                value={formData.precautions.join('\n')}
+                                onChange={(e) => setFormData({ ...formData, precautions: e.target.value.split('\n') })}
+                                className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-600 font-medium text-slate-800 h-32 resize-none"
                             />
                         </div>
 

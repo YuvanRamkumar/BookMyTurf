@@ -9,15 +9,34 @@ export async function GET(
     const { id } = params;
     try {
         const turf = await prisma.turf.findUnique({
-            where: { id }
+            where: { id },
+            include: {
+                reviews: {
+                    include: {
+                        user: {
+                            select: { name: true }
+                        }
+                    },
+                    orderBy: { created_at: 'desc' }
+                },
+                _count: {
+                    select: { bookings: true }
+                }
+            }
         });
 
         if (!turf) {
             return NextResponse.json({ error: 'Turf not found' }, { status: 404 });
         }
 
-        return NextResponse.json(turf);
+        // Calculate average rating
+        const avgRating = turf.reviews.length > 0
+            ? turf.reviews.reduce((acc, r) => acc + r.rating, 0) / turf.reviews.length
+            : 0;
+
+        return NextResponse.json({ ...turf, avgRating });
     } catch (error) {
+        console.error("Fetch turf error:", error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
@@ -48,17 +67,15 @@ export async function PUT(
         }
 
         const data: any = {};
-        const allowedFields = ['name', 'location', 'sport_type', 'price_per_hour', 'opening_time', 'closing_time', 'image_url', 'status'];
-
-        // Validate status if provided
-        if (updates.status && !['ACTIVE', 'MAINTENANCE', 'CLOSED'].includes(updates.status)) {
-            return NextResponse.json({ error: 'Invalid status. Must be ACTIVE, MAINTENANCE, or CLOSED' }, { status: 400 });
-        }
+        const allowedFields = ['name', 'location', 'sport_type', 'price_per_hour', 'opening_time', 'closing_time', 'image_url', 'status', 'description', 'amenities', 'precautions', 'images', 'operational_status'];
 
         for (const field of allowedFields) {
             if (updates[field] !== undefined) {
                 if (field === 'price_per_hour') data[field] = Number(updates[field]);
-                else if (field === 'sport_type') data[field] = updates[field] === 'Football/Cricket' ? 'FOOTBALL_CRICKET' : 'PICKLEBALL';
+                else if (field === 'sport_type') data[field] = (updates[field] === 'Football/Cricket' || updates[field] === 'FOOTBALL_CRICKET') ? 'FOOTBALL_CRICKET' : 'PICKLEBALL';
+                else if (field === 'amenities' || field === 'precautions' || field === 'images') {
+                    data[field] = Array.isArray(updates[field]) ? updates[field] : [];
+                }
                 else data[field] = updates[field];
             }
         }
@@ -71,18 +88,22 @@ export async function PUT(
         // Regenerate slots if timing changed
         if (updates.opening_time || updates.closing_time) {
             const today = new Date();
-            today.setHours(0, 0, 0, 0);
 
             for (let i = 0; i < 7; i++) {
                 const date = new Date(today);
                 date.setDate(today.getDate() + i);
 
+                // Normalize to YYYY-MM-DD to match database date storage
+                const dateStr = date.toISOString().split('T')[0];
+                const normalizedDate = new Date(dateStr);
+
                 // Delete only unbooked slots for this date/turf
                 await prisma.slot.deleteMany({
                     where: {
                         turf_id: id,
-                        date: date,
-                        is_booked: false
+                        date: normalizedDate,
+                        is_booked: false,
+                        booking: null // Ensure no booking record exists at all (even pending ones)
                     }
                 });
 
@@ -99,7 +120,7 @@ export async function PUT(
                         where: {
                             turf_id_date_start_time_end_time: {
                                 turf_id: id,
-                                date: date,
+                                date: normalizedDate,
                                 start_time: startTime,
                                 end_time: endTime
                             }
@@ -109,7 +130,7 @@ export async function PUT(
                     if (!exists) {
                         newSlots.push({
                             turf_id: id,
-                            date: date,
+                            date: normalizedDate,
                             start_time: startTime,
                             end_time: endTime,
                             is_booked: false

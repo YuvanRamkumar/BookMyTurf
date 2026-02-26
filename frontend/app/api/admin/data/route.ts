@@ -10,33 +10,12 @@ export async function GET() {
 
     try {
         const adminId = session.id;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
         const totalTurfs = await prisma.turf.count({ where: { admin_id: adminId } });
-        const totalBookings = await prisma.booking.count({
-            where: { turf: { admin_id: adminId } }
-        });
 
-        const turfs = await prisma.turf.findMany({
-            where: { admin_id: adminId },
-            include: {
-                _count: {
-                    select: { bookings: true, slots: true }
-                }
-            }
-        });
-
-        const bookings = await prisma.booking.findMany({
-            where: { turf: { admin_id: adminId } },
-            include: {
-                turf: { select: { name: true, price_per_hour: true } },
-                user: { select: { name: true, email: true } },
-                slot: true
-            },
-            orderBy: { created_at: 'desc' },
-            take: 20
-        });
-
-        // Calculate revenue from confirmed bookings
+        // Stats
         const confirmedBookings = await prisma.booking.findMany({
             where: {
                 turf: { admin_id: adminId },
@@ -44,10 +23,60 @@ export async function GET() {
             },
             include: { turf: true }
         });
-
         const totalRevenue = confirmedBookings.reduce((sum, b) => sum + b.turf.price_per_hour, 0);
+        const totalBookings = confirmedBookings.length;
 
-        const transformedBookings = bookings.map(b => ({
+        const todayBookingsCount = await prisma.booking.count({
+            where: {
+                turf: { admin_id: adminId },
+                slot: { date: today }
+            }
+        });
+
+        // Fetch Turfs with their "Today" status
+        const turfsRaw = await prisma.turf.findMany({
+            where: { admin_id: adminId },
+            include: {
+                slots: {
+                    where: { date: today },
+                    orderBy: { start_time: 'asc' }
+                }
+            }
+        });
+
+        const currentHour = new Date().getHours();
+        const currentTime = `${currentHour.toString().padStart(2, '0')}:00`;
+
+        const turfs = turfsRaw.map((t: any) => {
+            const currentSlot = t.slots.find((s: any) => s.start_time <= currentTime && s.end_time > currentTime);
+            const nextSlot = t.slots.find((s: any) => s.start_time > currentTime);
+
+            // If the venue is MAINTENANCE or CLOSED, it overrides the slot status
+            const currentStatus = t.operational_status !== 'ACTIVE' ? t.operational_status : (currentSlot ? (currentSlot.is_booked ? 'OCCUPIED' : 'VACANT') : 'CLOSED');
+
+            return {
+                ...t,
+                currentStatus,
+                nextSlot: nextSlot ? { start_time: nextSlot.start_time, is_booked: nextSlot.is_booked } : null
+            };
+        });
+
+        // Bookings (Today + Recent)
+        const bookingsRaw = await prisma.booking.findMany({
+            where: { turf: { admin_id: adminId } },
+            include: {
+                turf: { select: { name: true, price_per_hour: true } },
+                user: { select: { name: true, email: true, id: true } },
+                slot: true
+            },
+            orderBy: [
+                { slot: { date: 'desc' } },
+                { slot: { start_time: 'desc' } }
+            ],
+            take: 15
+        });
+
+        const transformedBookings = bookingsRaw.map(b => ({
             ...b,
             turfName: b.turf.name,
             userName: b.user.name,
@@ -58,7 +87,8 @@ export async function GET() {
             stats: {
                 totalTurfs,
                 totalBookings,
-                totalRevenue
+                totalRevenue,
+                todayBookingsCount
             },
             turfs,
             bookings: transformedBookings

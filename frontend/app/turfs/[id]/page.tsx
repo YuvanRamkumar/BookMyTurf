@@ -190,7 +190,7 @@ export default function TurfDetails() {
                                     {slots
                                         .filter(slot => {
                                             const todayStr = format(new Date(), "yyyy-MM-dd");
-                                            const slotDateStr = format(new Date(slot.date), "yyyy-MM-dd");
+                                            const slotDateStr = slot.date.split('T')[0];
                                             const currentTimeStr = format(new Date(), "HH:mm");
 
                                             const isPast = slotDateStr === todayStr && slot.start_time < currentTimeStr;

@@ -19,6 +19,7 @@ export default function AdminSlotsManagement() {
     const [newSlotEnd, setNewSlotEnd] = useState("07:00");
     const [addingSlot, setAddingSlot] = useState(false);
     const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+    const [showPastSlots, setShowPastSlots] = useState(false);
 
     const dates = Array.from({ length: 7 }).map((_, i) => addDays(new Date(), i));
 
@@ -259,6 +260,28 @@ export default function AdminSlotsManagement() {
                         </div>
                     </div>
 
+                    <div className="flex items-center space-x-4 mb-6">
+                        <label className="flex items-center cursor-pointer group">
+                            <div className="relative">
+                                <input
+                                    type="checkbox"
+                                    className="sr-only"
+                                    checked={showPastSlots}
+                                    onChange={() => setShowPastSlots(!showPastSlots)}
+                                />
+                                <div className={cn(
+                                    "w-10 h-6 rounded-full transition-colors",
+                                    showPastSlots ? "bg-indigo-600" : "bg-slate-200"
+                                )}></div>
+                                <div className={cn(
+                                    "absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform",
+                                    showPastSlots && "translate-x-4"
+                                )}></div>
+                            </div>
+                            <span className="ml-3 text-sm font-bold text-slate-600 group-hover:text-indigo-600 transition-colors">Show Past Slots</span>
+                        </label>
+                    </div>
+
                     {loading ? (
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-pulse">
                             {[1, 2, 3, 4, 5, 6, 7, 8].map(i => <div key={i} className="h-24 bg-slate-50 rounded-2xl" />)}
@@ -279,74 +302,97 @@ export default function AdminSlotsManagement() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                             {slots
                                 .filter(slot => {
-                                    const isPast = slot.date === format(new Date(), "yyyy-MM-dd") && slot.start_time < format(new Date(), "HH:mm");
+                                    if (showPastSlots) return true;
+                                    const todayStr = format(new Date(), "yyyy-MM-dd");
+                                    const slotDateStr = slot.date.split('T')[0];
+                                    const currentTimeStr = format(new Date(), "HH:mm");
+
+                                    const isPast = slotDateStr === todayStr && slot.start_time < currentTimeStr;
                                     return !isPast;
                                 })
-                                .map((slot) => (
-                                    <div
-                                        key={slot.id}
-                                        className={cn(
-                                            "p-5 rounded-3xl border-2 transition-all relative group",
-                                            slot.is_booked
-                                                ? "bg-amber-50 border-amber-100"
-                                                : "bg-emerald-50 border-emerald-100",
-                                            actionLoading === slot.id && "opacity-50 pointer-events-none"
-                                        )}
-                                    >
-                                        {/* Time Range - Main Display */}
-                                        <div className="text-center mb-3">
-                                            <div className="flex items-center justify-center space-x-2">
-                                                <span className={cn("text-xl font-black", slot.is_booked ? "text-amber-600" : "text-emerald-600")}>
-                                                    {slot.start_time}
-                                                </span>
-                                                <span className={cn("text-sm font-bold", slot.is_booked ? "text-amber-300" : "text-emerald-300")}>–</span>
-                                                <span className={cn("text-xl font-black", slot.is_booked ? "text-amber-600" : "text-emerald-600")}>
-                                                    {slot.end_time}
+                                .map((slot) => {
+                                    const todayStr = format(new Date(), "yyyy-MM-dd");
+                                    const slotDateStr = slot.date.split('T')[0];
+                                    const currentTimeStr = format(new Date(), "HH:mm");
+                                    const currentHour = new Date().getHours();
+                                    const currentSlotTime = `${currentHour.toString().padStart(2, '0')}:00`;
+
+                                    const isCurrent = slotDateStr === todayStr && slot.start_time === currentSlotTime;
+                                    const isPast = slotDateStr === todayStr && slot.start_time < currentTimeStr;
+
+                                    return (
+                                        <div
+                                            key={slot.id}
+                                            className={cn(
+                                                "p-5 rounded-3xl border-2 transition-all relative group",
+                                                isCurrent && "ring-2 ring-indigo-500 ring-offset-2",
+                                                isPast ? "opacity-60 grayscale-[0.5]" : "",
+                                                slot.is_booked
+                                                    ? "bg-amber-50 border-amber-100"
+                                                    : "bg-emerald-50 border-emerald-100",
+                                                actionLoading === slot.id && "opacity-50 pointer-events-none"
+                                            )}
+                                        >
+                                            {isCurrent && (
+                                                <div className="absolute -top-2 -right-2 bg-indigo-600 text-white text-[8px] font-black px-2 py-1 rounded-full shadow-lg z-10 animate-bounce">
+                                                    NOW
+                                                </div>
+                                            )}
+                                            {/* Time Range - Main Display */}
+                                            <div className="text-center mb-3">
+                                                <div className="flex items-center justify-center space-x-2">
+                                                    <span className={cn("text-xl font-black", slot.is_booked ? "text-amber-600" : "text-emerald-600")}>
+                                                        {slot.start_time}
+                                                    </span>
+                                                    <span className={cn("text-sm font-bold", slot.is_booked ? "text-amber-300" : "text-emerald-300")}>–</span>
+                                                    <span className={cn("text-xl font-black", slot.is_booked ? "text-amber-600" : "text-emerald-600")}>
+                                                        {slot.end_time}
+                                                    </span>
+                                                </div>
+                                                <span className={cn(
+                                                    "text-[10px] uppercase font-bold tracking-wider mt-1 block",
+                                                    slot.is_booked ? "text-amber-500" : "text-emerald-400"
+                                                )}>
+                                                    {slot.is_booked ? "Blocked / Booked" : "Available"}
                                                 </span>
                                             </div>
-                                            <span className={cn(
-                                                "text-[10px] uppercase font-bold tracking-wider mt-1 block",
-                                                slot.is_booked ? "text-amber-500" : "text-emerald-400"
-                                            )}>
-                                                {slot.is_booked ? "Blocked / Booked" : "Available"}
-                                            </span>
-                                        </div>
 
-                                        {/* Action Buttons */}
-                                        <div className="flex space-x-2">
-                                            <button
-                                                onClick={() => toggleSlot(slot.id, slot.is_booked)}
-                                                disabled={actionLoading === slot.id}
-                                                className={cn(
-                                                    "flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5",
-                                                    slot.is_booked
-                                                        ? "bg-white text-amber-600 hover:bg-amber-100 border border-amber-100"
-                                                        : "bg-white text-emerald-600 hover:bg-emerald-100 border border-emerald-100"
-                                                )}
-                                            >
-                                                {actionLoading === slot.id ? (
-                                                    <Loader2 size={14} className="animate-spin" />
-                                                ) : slot.is_booked ? (
-                                                    <><Unlock size={14} /><span>Unblock</span></>
-                                                ) : (
-                                                    <><Lock size={14} /><span>Block</span></>
-                                                )}
-                                            </button>
-                                            <button
-                                                onClick={() => handleRemoveSlot(slot.id)}
-                                                disabled={actionLoading === slot.id || slot.is_booked}
-                                                title={slot.is_booked ? "Unblock first to remove" : "Remove this slot"}
-                                                className="px-3 py-2 rounded-xl bg-white text-slate-400 hover:text-rose-500 hover:bg-rose-50 border border-slate-100 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                                            >
-                                                <Trash2 size={14} />
-                                            </button>
+                                            {/* Action Buttons */}
+                                            <div className="flex space-x-2">
+                                                <button
+                                                    onClick={() => toggleSlot(slot.id, slot.is_booked)}
+                                                    disabled={actionLoading === slot.id}
+                                                    className={cn(
+                                                        "flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5",
+                                                        slot.is_booked
+                                                            ? "bg-white text-amber-600 hover:bg-amber-100 border border-amber-100"
+                                                            : "bg-white text-emerald-600 hover:bg-emerald-100 border border-emerald-100"
+                                                    )}
+                                                >
+                                                    {actionLoading === slot.id ? (
+                                                        <Loader2 size={14} className="animate-spin" />
+                                                    ) : slot.is_booked ? (
+                                                        <><Unlock size={14} /><span>Unblock</span></>
+                                                    ) : (
+                                                        <><Lock size={14} /><span>Block</span></>
+                                                    )}
+                                                </button>
+                                                <button
+                                                    onClick={() => handleRemoveSlot(slot.id)}
+                                                    disabled={actionLoading === slot.id || slot.is_booked}
+                                                    title={slot.is_booked ? "Unblock first to remove" : "Remove this slot"}
+                                                    className="px-3 py-2 rounded-xl bg-white text-slate-400 hover:text-rose-500 hover:bg-rose-50 border border-slate-100 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                                                >
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                         </div>
                     )}
                 </div>
             </div>
-        </Shell>
+        </Shell >
     );
 }

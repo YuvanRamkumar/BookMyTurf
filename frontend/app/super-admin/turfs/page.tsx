@@ -2,7 +2,7 @@
 
 import Shell from "@/components/Shell";
 import { useEffect, useState } from "react";
-import { Trophy, CheckCircle, Trash2, Loader2, AlertCircle } from "lucide-react";
+import { Trophy, CheckCircle, XCircle, Trash2, Loader2, AlertCircle } from "lucide-react";
 import { formatCurrency, cn } from "@/lib/utils";
 
 export default function SuperAdminTurfs() {
@@ -11,7 +11,7 @@ export default function SuperAdminTurfs() {
 
     const fetchData = async () => {
         setLoading(true);
-        const res = await fetch("/api/super-admin/data");
+        const res = await fetch("/api/super-admin/data", { cache: 'no-store' });
         const json = await res.json();
         setData(json);
         setLoading(false);
@@ -22,12 +22,24 @@ export default function SuperAdminTurfs() {
     }, []);
 
     const handleApproveTurf = async (turfId: string, approve: boolean) => {
-        await fetch("/api/super-admin/approve-turf", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ turfId, approve }),
-        });
-        fetchData();
+        try {
+            const res = await fetch("/api/super-admin/approve-turf", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ turfId, approve }),
+            });
+            if (res.ok) {
+                // Optimistic update
+                setData((prev: any) => ({
+                    ...prev,
+                    turfs: prev.turfs.map((t: any) =>
+                        t.id === turfId ? { ...t, status: approve ? 'APPROVED' : 'REJECTED' } : t
+                    )
+                }));
+            }
+        } catch (err) {
+            console.error(err);
+        }
     };
 
     const handleDeleteTurf = async (turfId: string) => {
@@ -58,25 +70,30 @@ export default function SuperAdminTurfs() {
                                         </p>
                                     </div>
                                     <div className="flex flex-col items-end">
-                                        {!turf.is_approved && (
+                                        {turf.status === 'PENDING' && (
                                             <span className="bg-amber-50 text-amber-700 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest mb-2 border border-amber-200">
                                                 New Proposal
                                             </span>
                                         )}
-                                        {turf.is_approved && (
+                                        {turf.status === 'APPROVED' && (
                                             <span className={cn(
-                                                "text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-tighter border",
-                                                turf.status === 'ACTIVE' ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
-                                                    turf.status === 'MAINTENANCE' ? "bg-amber-50 text-amber-600 border-amber-100" :
+                                                "text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-tighter border mb-2",
+                                                turf.operational_status === 'ACTIVE' ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
+                                                    turf.operational_status === 'MAINTENANCE' ? "bg-amber-50 text-amber-600 border-amber-100" :
                                                         "bg-rose-50 text-rose-600 border-rose-100"
                                             )}>
-                                                {turf.status}
+                                                {turf.operational_status}
+                                            </span>
+                                        )}
+                                        {turf.status === 'REJECTED' && (
+                                            <span className="bg-rose-50 text-rose-700 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest mb-2 border border-rose-200">
+                                                Rejected
                                             </span>
                                         )}
                                     </div>
                                 </div>
 
-                                {!turf.is_approved ? (
+                                {turf.status === 'PENDING' ? (
                                     <div className="grid grid-cols-2 gap-3 mb-6">
                                         <button
                                             onClick={() => handleApproveTurf(turf.id, true)}
@@ -91,9 +108,13 @@ export default function SuperAdminTurfs() {
                                             Reject
                                         </button>
                                     </div>
-                                ) : (
+                                ) : turf.status === 'APPROVED' ? (
                                     <div className="flex items-center text-emerald-600 text-xs font-bold mb-6">
                                         <CheckCircle size={14} className="mr-1" /> Active on platform
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center text-rose-600 text-xs font-bold mb-6">
+                                        <XCircle size={14} className="mr-1" /> Rejected
                                     </div>
                                 )}
 

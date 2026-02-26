@@ -229,10 +229,10 @@ export default function TurfListing() {
                         {filteredTurfs.map((turf) => (
                             <Link
                                 key={turf.id}
-                                href={`/turfs/${turf.id}`}
+                                href={`/turf/${turf.id}`}
                                 className={cn(
                                     "group bg-white rounded-[40px] border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-indigo-100/50 transition-all duration-500 overflow-hidden flex flex-col",
-                                    turf.status !== 'ACTIVE' && "grayscale opacity-80 bg-slate-50"
+                                    turf.operational_status !== 'ACTIVE' && "grayscale opacity-80 bg-slate-50"
                                 )}
                             >
                                 <div className="aspect-[16/11] bg-slate-50 relative overflow-hidden">
@@ -245,7 +245,7 @@ export default function TurfListing() {
                                     )}
                                     <div className="absolute top-5 left-5">
                                         <div className="px-3 py-1.5 bg-white/90 backdrop-blur-md rounded-xl text-[10px] font-black text-indigo-600 shadow-sm uppercase tracking-widest border border-white/20">
-                                            {turf.sport_type}
+                                            {turf.sport_type === 'FOOTBALL_CRICKET' ? 'FOOTBALL / CRICKET' : turf.sport_type}
                                         </div>
                                     </div>
                                     <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-white to-transparent" />
@@ -258,7 +258,7 @@ export default function TurfListing() {
                                         </h3>
                                         <div className="flex items-center px-2 py-1 bg-amber-50 rounded-lg shrink-0 ml-2">
                                             <Star size={13} className="text-amber-500 fill-amber-500" />
-                                            <span className="text-xs font-black ml-1 text-amber-700">4.8</span>
+                                            <span className="text-xs font-black ml-1 text-amber-700">{turf.avgRating?.toFixed(1) || '0.0'}</span>
                                         </div>
                                     </div>
 
@@ -267,12 +267,12 @@ export default function TurfListing() {
                                         {turf.location}
                                     </div>
 
-                                    {turf.status !== 'ACTIVE' && (
+                                    {turf.operational_status !== 'ACTIVE' && (
                                         <div className={cn(
                                             "inline-flex px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border w-fit mb-4",
-                                            turf.status === 'MAINTENANCE' ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-rose-50 text-rose-700 border-rose-200"
+                                            turf.operational_status === 'MAINTENANCE' ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-rose-50 text-rose-700 border-rose-200"
                                         )}>
-                                            {turf.status === 'MAINTENANCE' ? '🛠️ Under Maintenance' : '🔒 Temporarily Closed'}
+                                            {turf.operational_status === 'MAINTENANCE' ? '🛠️ Under Maintenance' : '🔒 Temporarily Closed'}
                                         </div>
                                     )}
 

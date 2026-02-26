@@ -11,7 +11,8 @@ export default function SuperAdminDashboard() {
 
     const fetchData = async () => {
         setLoading(true);
-        const res = await fetch("/api/super-admin/data");
+        // Add cache: 'no-store' to prevent stale data
+        const res = await fetch("/api/super-admin/data", { cache: 'no-store' });
         const json = await res.json();
         setData(json);
         setLoading(false);
@@ -29,7 +30,13 @@ export default function SuperAdminDashboard() {
                 body: JSON.stringify({ turfId, approve })
             });
             if (res.ok) {
-                fetchData(); // Refresh data
+                // Update local state immediately for instant feedback
+                setData((prev: any) => ({
+                    ...prev,
+                    turfs: prev.turfs.map((t: any) =>
+                        t.id === turfId ? { ...t, status: approve ? 'APPROVED' : 'REJECTED' } : t
+                    )
+                }));
             }
         } catch (err) {
             console.error(err);
@@ -89,16 +96,18 @@ export default function SuperAdminDashboard() {
                                             <td className="px-6 py-5">
                                                 <div className={cn(
                                                     "inline-flex px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border",
-                                                    turf.status === 'ACTIVE' ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
-                                                        turf.status === 'MAINTENANCE' ? "bg-amber-50 text-amber-600 border-amber-100" :
+                                                    turf.operational_status === 'ACTIVE' ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
+                                                        turf.operational_status === 'MAINTENANCE' ? "bg-amber-50 text-amber-600 border-amber-100" :
                                                             "bg-rose-50 text-rose-600 border-rose-100"
                                                 )}>
-                                                    {turf.status}
+                                                    {turf.operational_status}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-5 last:rounded-r-2xl">
-                                                {turf.is_approved ? (
-                                                    <span className="flex items-center text-xs font-bold text-emerald-600"><CheckCircle size={14} className="mr-1" /> Active</span>
+                                                {turf.status === 'APPROVED' ? (
+                                                    <span className="flex items-center text-xs font-bold text-emerald-600"><CheckCircle size={14} className="mr-1" /> Approved</span>
+                                                ) : turf.status === 'REJECTED' ? (
+                                                    <span className="flex items-center text-xs font-bold text-rose-600"><XCircle size={14} className="mr-1" /> Rejected</span>
                                                 ) : (
                                                     <div className="flex items-center space-x-2">
                                                         <button

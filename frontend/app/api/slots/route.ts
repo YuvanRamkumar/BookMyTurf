@@ -12,19 +12,69 @@ export async function GET(request: NextRequest) {
     }
 
     try {
+        // Uniform UTC midnight normalization for the date field
         const date = new Date(dateStr);
+        const normalizedDate = new Date(date.toISOString().split('T')[0]);
 
-        const slots = await prisma.slot.findMany({
+        let slots = await prisma.slot.findMany({
             where: {
                 turf_id: turfId,
-                date: {
-                    equals: date
-                }
+                date: normalizedDate
             },
             orderBy: {
                 start_time: 'asc'
             }
         });
+
+        const turf = await prisma.turf.findUnique({ where: { id: turfId } });
+        if (!turf) return NextResponse.json({ error: 'Turf not found' }, { status: 404 });
+
+        const startHour = parseInt(turf.opening_time.split(':')[0]);
+        const endHour = parseInt(turf.closing_time.split(':')[0]);
+
+        // Dynamic slot generation and maintenance
+        const now = new Date();
+        const todayStr = now.toISOString().split('T')[0];
+        const isTodayOrFuture = normalizedDate.toISOString().split('T')[0] >= todayStr;
+
+        if (isTodayOrFuture) {
+            const newSlotsData = [];
+            for (let h = startHour; h < endHour; h++) {
+                const startTime = `${h.toString().padStart(2, '0')}:00`;
+                const endTime = `${(h + 1).toString().padStart(2, '0')}:00`;
+
+                const existingSlot = slots.find(s => s.start_time === startTime);
+                if (!existingSlot) {
+                    newSlotsData.push({
+                        turf_id: turfId,
+                        date: normalizedDate,
+                        start_time: startTime,
+                        end_time: endTime,
+                        is_booked: false
+                    });
+                }
+            }
+
+            if (newSlotsData.length > 0) {
+                await prisma.slot.createMany({ data: newSlotsData });
+                // Re-fetch all slots to include new ones
+                slots = await prisma.slot.findMany({
+                    where: { turf_id: turfId, date: normalizedDate },
+                    orderBy: { start_time: 'asc' }
+                });
+            }
+
+            // Cleanup/Filter: Remove slots that fall outside current operating hours
+            // This fix ensures that if timing changed from 00:00 to 10:00, the 00:00 slots disappear
+            const originalCount = slots.length;
+            const validSlots = slots.filter(s => {
+                const sHour = parseInt(s.start_time.split(':')[0]);
+                return sHour >= startHour && sHour < endHour;
+            });
+
+            // If we found stale slots, we return only the valid ones
+            slots = validSlots;
+        }
 
         return NextResponse.json(slots);
     } catch (error) {

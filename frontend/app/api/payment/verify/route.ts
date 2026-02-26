@@ -35,33 +35,34 @@ export async function POST(request: NextRequest) {
         }
 
         if (isValid) {
-            // Update all bookings status and save payment ID
-            await prisma.booking.updateMany({
-                where: { razorpay_order_id },
-                data: {
-                    status: 'CONFIRMED',
-                    razorpay_payment_id: razorpay_payment_id
-                }
-            });
-
-            // Mark all slots as booked
-            await prisma.slot.updateMany({
-                where: { id: { in: bookings.map(b => b.slot_id) } },
-                data: { is_booked: true }
-            });
+            // Atomic update using transaction
+            await prisma.$transaction([
+                prisma.booking.updateMany({
+                    where: { razorpay_order_id },
+                    data: {
+                        status: 'CONFIRMED',
+                        razorpay_payment_id: razorpay_payment_id
+                    }
+                }),
+                prisma.slot.updateMany({
+                    where: { id: { in: bookings.map(b => b.slot_id) } },
+                    data: { is_booked: true }
+                })
+            ]);
 
             return NextResponse.json({ success: true, message: 'Payment verified and bookings confirmed' });
         } else {
-            // Mark bookings failed and release the slots
-            await prisma.booking.updateMany({
-                where: { razorpay_order_id },
-                data: { status: 'FAILED' }
-            });
-
-            await prisma.slot.updateMany({
-                where: { id: { in: bookings.map(b => b.slot_id) } },
-                data: { is_booked: false }
-            });
+            // Atomic update for failure as well
+            await prisma.$transaction([
+                prisma.booking.updateMany({
+                    where: { razorpay_order_id },
+                    data: { status: 'FAILED' }
+                }),
+                prisma.slot.updateMany({
+                    where: { id: { in: bookings.map(b => b.slot_id) } },
+                    data: { is_booked: false }
+                })
+            ]);
 
             return NextResponse.json({ success: false, error: 'Invalid signature' }, { status: 400 });
         }

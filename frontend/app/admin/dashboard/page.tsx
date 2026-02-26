@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Trophy, Users, Calendar, Plus, Settings, Loader2, Pencil, Trash2, AlertTriangle, X, CheckCircle2, Image as ImageIcon, MapPin, Clock } from "lucide-react";
 import Link from "next/link";
 import { formatCurrency, cn } from "@/lib/utils";
+import { format } from "date-fns";
 
 export default function AdminDashboard() {
     const [data, setData] = useState<any>({ turfs: [], bookings: [] });
@@ -37,14 +38,14 @@ export default function AdminDashboard() {
             const res = await fetch(`/api/turfs/${turfId}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ status: status.toUpperCase() }),
+                body: JSON.stringify({ operational_status: status.toUpperCase() }),
             });
             if (!res.ok) throw new Error("Failed to update status");
 
             setToast({ type: 'success', text: `Venue status updated to ${status}` });
             setData((prev: any) => ({
                 ...prev,
-                turfs: prev.turfs.map((t: any) => t.id === turfId ? { ...t, status: status.toUpperCase() } : t),
+                turfs: prev.turfs.map((t: any) => t.id === turfId ? { ...t, operational_status: status.toUpperCase() } : t),
             }));
         } catch (err: any) {
             setToast({ type: 'error', text: err.message });
@@ -128,22 +129,24 @@ export default function AdminDashboard() {
                 {/* Stats Row */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
                     <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                        <div className="text-slate-500 text-sm font-medium mb-1 uppercase tracking-wider">Total Turfs</div>
+                        <div className="text-slate-500 text-sm font-medium mb-1 uppercase tracking-wider text-[10px]">Total Venues</div>
                         <div className="text-3xl font-black text-slate-900">{data.stats?.totalTurfs || 0}</div>
                     </div>
                     <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                        <div className="text-slate-500 text-sm font-medium mb-1 uppercase tracking-wider">Total Bookings</div>
-                        <div className="text-3xl font-black text-slate-900">{data.stats?.totalBookings || 0}</div>
+                        <div className="text-slate-500 text-sm font-medium mb-1 uppercase tracking-wider text-[10px]">Today's Bookings</div>
+                        <div className="text-3xl font-black text-indigo-600">{data.stats?.todayBookingsCount || 0}</div>
                     </div>
                     <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                        <div className="text-slate-500 text-sm font-medium mb-1 uppercase tracking-wider">Revenue</div>
-                        <div className="text-3xl font-black text-indigo-600">
+                        <div className="text-slate-500 text-sm font-medium mb-1 uppercase tracking-wider text-[10px]">Total Revenue</div>
+                        <div className="text-3xl font-black text-slate-900">
                             {formatCurrency(data.stats?.totalRevenue || 0)}
                         </div>
                     </div>
                     <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                        <div className="text-slate-500 text-sm font-medium mb-1 uppercase tracking-wider">Avg Occupancy</div>
-                        <div className="text-3xl font-black text-emerald-600">68%</div>
+                        <div className="text-slate-500 text-sm font-medium mb-1 uppercase tracking-wider text-[10px]">Avg Occupancy</div>
+                        <div className="text-3xl font-black text-emerald-600">
+                            {data.stats?.totalTurfs > 0 ? `${Math.round(((data.stats?.todayBookingsCount || 0) / (data.stats?.totalTurfs * 12)) * 100)}%` : '0%'}
+                        </div>
                     </div>
                 </div>
 
@@ -189,15 +192,19 @@ export default function AdminDashboard() {
                                         )}
                                         <div className="absolute top-4 left-4 flex space-x-2">
                                             <div className="px-3 py-1.5 bg-white/90 backdrop-blur rounded-xl text-[10px] font-black uppercase tracking-widest text-indigo-600 shadow-sm">
-                                                {turf.sport_type}
+                                                {turf.sport_type === 'FOOTBALL_CRICKET' ? 'FOOTBALL / CRICKET' : turf.sport_type}
                                             </div>
-                                            {!turf.is_approved ? (
+                                            {turf.status === 'PENDING' ? (
                                                 <div className="px-3 py-1.5 bg-amber-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-amber-200 flex items-center">
                                                     <Clock size={10} className="mr-1" /> Pending Approval
                                                 </div>
-                                            ) : (
+                                            ) : turf.status === 'APPROVED' ? (
                                                 <div className="px-3 py-1.5 bg-emerald-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-200 flex items-center">
                                                     <CheckCircle2 size={10} className="mr-1" /> Approved
+                                                </div>
+                                            ) : (
+                                                <div className="px-3 py-1.5 bg-rose-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-rose-200 flex items-center">
+                                                    <X size={10} className="mr-1" /> Rejected
                                                 </div>
                                             )}
                                         </div>
@@ -223,16 +230,39 @@ export default function AdminDashboard() {
                                             <h3 className="text-xl font-black text-slate-900 group-hover:text-indigo-600 transition-colors uppercase tracking-tight">{turf.name}</h3>
                                             <div className={cn(
                                                 "px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border",
-                                                turf.status === 'ACTIVE' ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
-                                                    turf.status === 'MAINTENANCE' ? "bg-amber-50 text-amber-600 border-amber-100" :
+                                                turf.operational_status === 'ACTIVE' ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
+                                                    turf.operational_status === 'MAINTENANCE' ? "bg-amber-50 text-amber-600 border-amber-100" :
                                                         "bg-rose-50 text-rose-600 border-rose-100"
                                             )}>
-                                                {turf.status}
+                                                {turf.operational_status}
                                             </div>
                                         </div>
-                                        <div className="flex items-center text-slate-400 text-sm mb-4 font-medium">
+                                        <div className="flex items-center text-slate-400 text-sm mb-2 font-medium">
                                             <MapPin size={14} className="mr-1" />
                                             {turf.location}
+                                        </div>
+
+                                        {/* Dynamic Status Badges */}
+                                        <div className="flex gap-2 mb-4">
+                                            <div className={cn(
+                                                "px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border flex items-center shadow-sm",
+                                                turf.currentStatus === 'OCCUPIED' ? "bg-rose-50 text-rose-600 border-rose-100" :
+                                                    turf.currentStatus === 'VACANT' ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
+                                                        "bg-slate-50 text-slate-400 border-slate-200"
+                                            )}>
+                                                <div className={cn("w-1.5 h-1.5 rounded-full mr-1.5 animate-pulse",
+                                                    turf.currentStatus === 'OCCUPIED' ? "bg-rose-500" :
+                                                        turf.currentStatus === 'VACANT' ? "bg-emerald-500" : "bg-slate-300"
+                                                )} />
+                                                NOW: {turf.currentStatus}
+                                            </div>
+                                            {turf.nextSlot && (
+                                                <div className={cn(
+                                                    "px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border bg-indigo-50 text-indigo-600 border-indigo-100 shadow-sm",
+                                                )}>
+                                                    NEXT: {turf.nextSlot.start_time} ({turf.nextSlot.is_booked ? 'BOOKED' : 'FREE'})
+                                                </div>
+                                            )}
                                         </div>
 
                                         <div className="flex items-center justify-between mb-5">
@@ -254,7 +284,7 @@ export default function AdminDashboard() {
                                                         onClick={() => handleStatusUpdate(turf.id, s)}
                                                         className={cn(
                                                             "px-2.5 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all",
-                                                            turf.status === s
+                                                            turf.operational_status === s
                                                                 ? (s === 'ACTIVE' ? "bg-emerald-600 text-white shadow-lg shadow-emerald-100" : s === 'MAINTENANCE' ? "bg-amber-500 text-white shadow-lg shadow-amber-100" : "bg-rose-500 text-white shadow-lg shadow-rose-100")
                                                                 : "bg-white text-slate-400 hover:bg-slate-100 border border-slate-100"
                                                         )}
@@ -306,7 +336,7 @@ export default function AdminDashboard() {
                                         </div>
                                         <div>
                                             <div className="font-bold text-slate-900">{b.userName || 'User'}</div>
-                                            <div className="text-xs text-slate-500">{b.turf?.name} • {b.slot?.date}</div>
+                                            <div className="text-xs text-slate-500">{b.turf?.name} • {b.slot?.date ? format(new Date(b.slot.date), "MMM dd") : ''}</div>
                                         </div>
                                     </div>
                                     <div className="text-right">

@@ -15,14 +15,15 @@ export async function GET(request: NextRequest) {
         let where: any = {};
 
         // Filtering by approval + status logic
-        // Users see only approved + ACTIVE turfs
-        // Admins see ACTIVE approved turfs + all their own turfs
+        // Users see only APPROVED + ACTIVE turfs
+        // Admins see APPROVED ACTIVE turfs + all their own turfs
         // Super Admins see everything
         if (session?.role === 'USER' || !session) {
-            where.is_approved = true;
+            where.status = 'APPROVED';
+            where.operational_status = 'ACTIVE';
         } else if (session?.role === 'ADMIN') {
             where.OR = [
-                { is_approved: true, status: 'ACTIVE' },
+                { status: 'APPROVED', operational_status: 'ACTIVE' },
                 { admin_id: session.id }
             ];
         }
@@ -30,6 +31,9 @@ export async function GET(request: NextRequest) {
 
         const statusFilter = searchParams.get('status');
         if (statusFilter) where.status = statusFilter;
+
+        const operationalStatusFilter = searchParams.get('operational_status');
+        if (operationalStatusFilter) where.operational_status = operationalStatusFilter;
 
         if (adminId) where.admin_id = adminId;
         if (sportType) where.sport_type = (sportType === 'Football/Cricket' || sportType === 'FOOTBALL_CRICKET') ? 'FOOTBALL_CRICKET' : 'PICKLEBALL';
@@ -45,11 +49,22 @@ export async function GET(request: NextRequest) {
             include: {
                 _count: {
                     select: { slots: true }
+                },
+                reviews: {
+                    select: { rating: true }
                 }
             }
         });
 
-        return NextResponse.json(turfs);
+        // Calculate average rating for each turf
+        const turfsWithRating = turfs.map((t: any) => {
+            const avgRating = t.reviews.length > 0
+                ? t.reviews.reduce((acc: number, r: any) => acc + r.rating, 0) / t.reviews.length
+                : 0;
+            return { ...t, avgRating, reviewCount: t.reviews.length };
+        });
+
+        return NextResponse.json(turfsWithRating);
     } catch (error) {
         console.error("Fetch turfs error:", error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
@@ -64,7 +79,19 @@ export async function POST(request: NextRequest) {
 
     try {
         const body = await request.json();
-        const { name, location, sport_type, price_per_hour, opening_time, closing_time, image_url } = body;
+        const {
+            name,
+            location,
+            sport_type,
+            price_per_hour,
+            opening_time,
+            closing_time,
+            image_url,
+            description,
+            amenities,
+            precautions,
+            images
+        } = body;
 
         if (!name || !location || !sport_type || !price_per_hour || !opening_time || !closing_time) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -75,15 +102,19 @@ export async function POST(request: NextRequest) {
             data: {
                 name,
                 location,
+                description,
+                amenities: Array.isArray(amenities) ? amenities : [],
+                precautions: Array.isArray(precautions) ? precautions : [],
+                images: Array.isArray(images) ? images : [],
                 sport_type: (sport_type === 'Football/Cricket' || sport_type === 'FOOTBALL_CRICKET') ? 'FOOTBALL_CRICKET' : 'PICKLEBALL',
                 price_per_hour: Number(price_per_hour),
                 opening_time,
                 closing_time,
                 image_url,
                 admin_id: session.id,
-                is_approved: session.role === 'SUPER_ADMIN',
-                status: 'ACTIVE'
-            }
+                status: (session.role === 'SUPER_ADMIN' ? 'APPROVED' : 'PENDING') as any,
+                operational_status: 'ACTIVE' as any
+            } as any
         });
 
         // Generate initial slots for next 7 days
