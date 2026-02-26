@@ -4,6 +4,7 @@ import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Trophy, ArrowRight, Loader2 } from "lucide-react";
+import { signIn } from "next-auth/react";
 
 function LoginContent() {
     const [email, setEmail] = useState("");
@@ -122,6 +123,17 @@ function LoginContent() {
                             </button>
                         </div>
                     </form>
+
+                    <div className="mt-6">
+                        <button
+                            type="button"
+                            onClick={() => signIn("google", { callbackUrl: callbackUrl || "/dashboard" })}
+                            className="w-full flex justify-center items-center py-2.5 px-4 border border-slate-300 rounded-lg shadow-sm text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all"
+                        >
+                            <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5 mr-3" alt="Google" />
+                            Continue with Google
+                        </button>
+                    </div>
 
                     <div className="mt-6">
                         <div className="relative">

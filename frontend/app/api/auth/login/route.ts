@@ -12,12 +12,12 @@ export async function POST(request: NextRequest) {
             where: { email },
         });
 
-        if (!user) {
+        if (!user || !user.password_hash) {
             return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
         }
 
         // 2. Verify hashed password
-        const isPasswordCorrect = await bcrypt.compare(password, user.password_hash);
+        const isPasswordCorrect = await bcrypt.compare(password as string, user.password_hash);
 
         if (!isPasswordCorrect) {
             return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });

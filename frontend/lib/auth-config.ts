@@ -1,7 +1,7 @@
 import NextAuth from "next-auth"
-import Credentials from "next-auth/providers/credentials"
 import Google from "next-auth/providers/google"
-import { db } from "@/lib/db"
+import Credentials from "next-auth/providers/credentials"
+import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -19,7 +19,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             async authorize(credentials) {
                 if (!credentials?.email || !credentials?.password) return null
 
-                const user = await db.user.findUnique({
+                const user = await prisma.user.findUnique({
                     where: { email: credentials.email as string },
                 })
 
@@ -46,18 +46,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         async signIn({ user, account }) {
             if (account?.provider === "google") {
                 try {
-                    const existingUser = await db.user.findUnique({
+                    const existingUser = await prisma.user.findUnique({
                         where: { email: user.email as string }
                     })
 
                     if (!existingUser) {
-                        await db.user.create({
+                        await prisma.user.create({
                             data: {
                                 email: user.email as string,
-                                name: user.name ?? null,
-                                password_hash: null as any, // Bypass required check if Prisma client is stale; DB allows null
+                                name: user.name,
                                 role: "USER",
-                                is_approved: true, // Auto-approve users who sign in with Google
+                                is_approved: true,
                             }
                         })
                     }
@@ -71,9 +70,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         },
         async jwt({ token, user, account }: { token: any, user: any, account?: any }) {
             if (user) {
-                // Initial sign in
                 if (account?.provider === "google") {
-                    const dbUser = await db.user.findUnique({
+                    const dbUser = await prisma.user.findUnique({
                         where: { email: user.email as string }
                     })
                     if (dbUser) {
@@ -82,18 +80,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                         token.is_approved = dbUser.is_approved
                     }
                 } else {
-                    token.role = user.role
-                    token.id = user.id
-                    token.is_approved = user.is_approved
+                    const u = user as any
+                    token.role = u.role
+                    token.id = u.id
+                    token.is_approved = u.is_approved
                 }
             }
             return token
         },
         async session({ session, token }: { session: any, token: any }) {
             if (token && session.user) {
-                session.user.role = token.role
-                session.user.id = token.id
-                session.user.is_approved = token.is_approved
+                (session.user as any).role = token.role;
+                (session.user as any).id = token.id;
+                (session.user as any).is_approved = token.is_approved;
             }
             return session
         },
