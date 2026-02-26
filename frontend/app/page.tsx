@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Trophy, Calendar, MapPin, CheckCircle } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import OpeningCircles from "@/components/OpeningCircles";
+import GridReveal from "@/components/GridReveal";
 import TurfCarousel from "@/components/TurfCarousel";
 import { useRef } from "react";
 
@@ -22,23 +22,17 @@ function FeatureCard({ icon, title, desc }: { icon: React.ReactNode; title: stri
 export default function Home() {
   /**
    * ARCHITECTURE:
-   *  - Layer 1 (z-10, fixed): TurfCarousel — never moves
-   *  - Layer 2 (z-20, fixed): White circles — roll IN over the carousel as user scrolls
-   *  - Layer 3 (z-30, fixed): Hero content  — fades in after circles cover screen
+   *  - Layer 1 (z-10, fixed): TurfCarousel — the base, always visible
+   *  - Layer 2 (z-20, fixed): GridReveal  — chessboard sweep + turf bg + cards
    *  - Spacer (transparent, 400vh): provides the scroll track
-   *  - Page 3 (z-40, relative, solid bg): naturally overlays fixed layers when scrolled into view
+   *  - Page 3 (z-40, relative, solid bg): naturally overlays fixed layers
    */
 
-  // Target the transparent spacer for scroll progress
   const spacerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: spacerRef,
     offset: ["start start", "end end"],
   });
-
-  // Phase 2 [0.55 → 0.85]: Hero fades in after circles form a solid white screen
-  const heroOpacity = useTransform(scrollYProgress, [0.55, 0.85], [0, 1]);
-  const heroY = useTransform(scrollYProgress, [0.55, 0.85], [36, 0]);
 
   return (
     <div className="bg-white">
@@ -60,51 +54,26 @@ export default function Home() {
         </nav>
       </header>
 
-      {/* ── LAYER 1: Carousel ── fixed, z-10 — the base layer, always visible */}
-      <div className="fixed inset-0 z-10">
-        <TurfCarousel />
-      </div>
-
-      {/* ── LAYER 2: Circles ── fixed, z-20 — rolls over the carousel */}
-      <OpeningCircles scrollYProgress={scrollYProgress} />
-
-      {/* ── LAYER 3: Hero ── fixed, z-30 — fades in when screen is white */}
+      {/* ── LAYER 1: Carousel ── fixed, z-10 — base layer */}
       <motion.div
-        style={{ opacity: heroOpacity, y: heroY }}
-        className="fixed inset-0 z-30 flex flex-col items-center justify-center text-center px-6 pointer-events-none"
+        className="fixed inset-0 z-10"
+        style={{ y: useTransform(scrollYProgress, [0, 0.6], ["0%", "-10%"]) }}
       >
-        <span className="text-indigo-600 text-xs font-black uppercase tracking-[0.5em] mb-4 inline-block">
-          Premium Sports Booking
-        </span>
-        <h1 className="text-7xl md:text-[9.3rem] font-black leading-[0.85] tracking-tighter text-slate-950 uppercase italic">
-          BookMy<span className="text-indigo-600">Turf</span>
-        </h1>
-        <p className="mt-8 text-slate-500 text-xl md:text-2xl font-medium tracking-tight max-w-2xl mx-auto">
-          Experience the game on the finest turfs.
-          <br className="hidden md:block" />
-          Instant booking, prime locations, and elite facilities.
-        </p>
-        <div className="mt-12 pointer-events-auto">
-          <Link href="/booking">
-            <button className="px-10 py-5 bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-widest text-xs rounded-full transition-all hover:scale-105 shadow-2xl shadow-indigo-200">
-              Start Booking Now
-            </button>
-          </Link>
-        </div>
+        <TurfCarousel />
       </motion.div>
+
+      {/* ── LAYER 2: GridReveal ── fixed, z-20 — chessboard + turf bg + cards */}
+      <GridReveal scrollYProgress={scrollYProgress} />
 
       {/*
         ── TRANSPARENT SCROLL SPACER ──
-        This is what the user actually scrolls through.
-        400vh = 100vh of "entrance" + 300vh of animation scroll room.
-        Has z-0 so it sits behind all fixed layers but still intercepts scroll events.
+        400vh gives plenty of room for the 3 animation phases.
       */}
       <div ref={spacerRef} className="relative z-0 h-[400vh]" />
 
       {/*
-        ── PAGE 3: FEATURES ──
-        z-40 with solid bg-slate-50 → naturally covers all fixed layers (z-10, 20, 30)
-        when the user scrolls past the spacer.
+        ── FEATURES SECTION ──
+        z-40 with solid bg naturally covers all fixed layers when scrolled into view.
       */}
       <section className="relative z-40 bg-slate-50 min-h-[50vh] w-full py-32 flex items-center border-t border-slate-200">
         <div className="container px-4 md:px-6 mx-auto">
@@ -128,7 +97,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer — also z-40 so it's above the fixed layers */}
+      {/* Footer */}
       <footer className="relative z-40 flex flex-col gap-2 sm:flex-row py-8 w-full items-center px-4 md:px-6 border-t border-slate-100 bg-white">
         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">© 2026 BookMyTurf Inc.</p>
         <nav className="sm:ml-auto flex gap-4 sm:gap-6">
