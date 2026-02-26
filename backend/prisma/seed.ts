@@ -1,4 +1,4 @@
-import { PrismaClient, Role, SportType } from '@prisma/client'
+import { PrismaClient, Role, SportType, ApprovalStatus, TurfStatus } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import fs from 'fs'
 import path from 'path'
@@ -54,7 +54,9 @@ async function main() {
                 closing_time: turf.closing_time,
                 image_url: turf.image_url,
                 admin_id: turf.admin_id,
-                is_approved: turf.is_approved,
+                status: turf.is_approved ? ApprovalStatus.APPROVED : ApprovalStatus.PENDING,
+                operational_status: turf.status === 'active' ? TurfStatus.ACTIVE :
+                    turf.status === 'closed' ? TurfStatus.CLOSED : TurfStatus.MAINTENANCE,
             }
         })
     }
