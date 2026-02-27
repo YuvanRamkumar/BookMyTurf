@@ -46,7 +46,7 @@ export default function AdminDashboard() {
             setToast({ type: 'success', text: `Venue status updated to ${status}` });
             setData((prev: any) => ({
                 ...prev,
-                turfs: prev.turfs.map((t: any) => t.id === turfId ? { ...t, operational_status: status.toUpperCase() } : t),
+                turfs: prev.turfs.map((t: any) => t.id === turfId ? { ...t, operational_status: status.toUpperCase(), currentStatus: status.toUpperCase() } : t),
             }));
         } catch (err: any) {
             setToast({ type: 'error', text: err.message });
@@ -289,7 +289,11 @@ export default function AdminDashboard() {
                                             <div className="bg-white/5 rounded-2xl p-5 border border-white/5">
                                                 <div className="text-slate-500 text-xs font-black uppercase tracking-widest mb-2">Live Status</div>
                                                 <div className="flex items-center space-x-3">
-                                                    <div className={cn("w-2.5 h-2.5 rounded-full", turf.currentStatus === 'VACANT' ? "bg-emerald-500 shadow-[0_0_10px_#10b981]" : "bg-rose-500 shadow-[0_0_10px_#ef4444]")} />
+                                                    <div className={cn("w-2.5 h-2.5 rounded-full",
+                                                        (turf.currentStatus === 'ACTIVE' || turf.currentStatus === 'VACANT') ? "bg-emerald-500 shadow-[0_0_10px_#10b981]" :
+                                                            turf.currentStatus === 'MAINTENANCE' ? "bg-amber-500 shadow-[0_0_10px_#f59e0b]" :
+                                                                "bg-rose-500 shadow-[0_0_10px_#ef4444]"
+                                                    )} />
                                                     <span className="text-lg font-black text-white uppercase tracking-tight">{turf.currentStatus}</span>
                                                 </div>
                                             </div>

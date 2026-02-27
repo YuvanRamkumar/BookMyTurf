@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../node_modules/@prisma/client"
 }
 
 datasource db {
@@ -17,36 +16,39 @@ model User {
   is_approved   Boolean   @default(false)
   created_at    DateTime  @default(now())
   bookings      Booking[]
-  turfs         Turf[]    @relation("AdminTurfs")
   reviews       Review[]
+  turfs         Turf[]    @relation("AdminTurfs")
 }
 
 model Turf {
-  id                 String         @id @default(uuid())
-  name               String
-  location           String
-  description        String?
-  amenities          String[]       @default([])
-  precautions        String[]       @default([])
-  images             String[]       @default([])
-  sport_type         SportType
-  price_per_hour     Float          // Legacy base price
-  weekday_price      Float          @default(1000)
-  weekend_price      Float          @default(1200)
-  peak_hour_multiplier Float         @default(1.2)
-  peak_start_time      String        @default("18:00")
-  peak_end_time        String        @default("21:00")
-  opening_time       String
-  closing_time       String
-  image_url          String?
-  admin_id           String
-  created_at         DateTime       @default(now())
-  status             ApprovalStatus @default(PENDING)
-  operational_status TurfStatus     @default(ACTIVE)
-  bookings           Booking[]
-  slots              Slot[]
-  reviews            Review[]
-  admin              User           @relation("AdminTurfs", fields: [admin_id], references: [id])
+  id                   String         @id @default(uuid())
+  name                 String
+  location             String
+  description          String?
+  amenities            String[]       @default([])
+  precautions          String[]       @default([])
+  images               String[]       @default([])
+  sport_type           SportType
+  price_per_hour       Float
+  weekday_price        Float          @default(1000)
+  weekend_price        Float          @default(1200)
+  peak_hour_multiplier Float          @default(1.2)
+  latitude             Float          @default(0)
+  longitude            Float          @default(0)
+  address              String         @default("")
+  opening_time         String
+  closing_time         String
+  image_url            String?
+  admin_id             String
+  created_at           DateTime       @default(now())
+  status               ApprovalStatus @default(PENDING)
+  operational_status   TurfStatus     @default(ACTIVE)
+  peak_end_time        String         @default("21:00")
+  peak_start_time      String         @default("18:00")
+  bookings             Booking[]
+  reviews              Review[]
+  slots                Slot[]
+  admin                User           @relation("AdminTurfs", fields: [admin_id], references: [id])
 }
 
 model Review {
@@ -56,8 +58,8 @@ model Review {
   rating     Int
   comment    String
   created_at DateTime @default(now())
-  user       User     @relation(fields: [user_id], references: [id])
   turf       Turf     @relation(fields: [turf_id], references: [id])
+  user       User     @relation(fields: [user_id], references: [id])
 }
 
 model Slot {

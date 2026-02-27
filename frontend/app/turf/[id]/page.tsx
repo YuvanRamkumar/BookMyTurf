@@ -11,6 +11,7 @@ import {
     ChevronLeft
 } from "lucide-react";
 import { formatCurrency, cn } from "@/lib/utils";
+import TurfMap from "@/components/TurfMap";
 import Link from "next/link";
 import { format } from "date-fns";
 
@@ -230,6 +231,15 @@ export default function TurfDashboard() {
                             })}
                         </div>
                     </section>
+
+                    {/* 📍 Location Map Section */}
+                    <TurfMap
+                        latitude={turf.latitude}
+                        longitude={turf.longitude}
+                        address={turf.address}
+                        turfName={turf.name}
+                        location={turf.location}
+                    />
 
                     {/* 4️⃣ Precautions Section */}
                     <section className="bg-slate-900/50 backdrop-blur-xl rounded-[40px] p-10 border border-white/5 shadow-2xl space-y-6 md:col-span-2">

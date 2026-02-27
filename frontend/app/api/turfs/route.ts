@@ -95,7 +95,10 @@ export async function POST(request: NextRequest) {
             weekend_price,
             peak_hour_multiplier,
             peak_start_time,
-            peak_end_time
+            peak_end_time,
+            latitude,
+            longitude,
+            address
         } = body;
 
         if (!name || !location || !sport_type || !price_per_hour || !opening_time || !closing_time) {
@@ -123,7 +126,10 @@ export async function POST(request: NextRequest) {
                 image_url,
                 admin_id: session.id,
                 status: (session.role === 'SUPER_ADMIN' ? 'APPROVED' : 'PENDING') as any,
-                operational_status: 'ACTIVE' as any
+                operational_status: 'ACTIVE' as any,
+                latitude: Number(latitude) || 0,
+                longitude: Number(longitude) || 0,
+                address: address || ""
             } as any
         });
 

@@ -54,7 +54,7 @@ async function main() {
                 closing_time: turf.closing_time,
                 image_url: turf.image_url,
                 admin_id: turf.admin_id,
-                is_approved: turf.is_approved,
+                status: turf.is_approved ? 'APPROVED' : 'PENDING',
             }
         })
     }

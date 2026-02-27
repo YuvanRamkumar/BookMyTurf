@@ -54,6 +54,12 @@ export async function PUT(
         const { id } = params;
         const updates = await request.json();
 
+        // Log the updates for debugging
+        try {
+            const fs = require('fs');
+            fs.appendFileSync('api_error_debug.log', `[${new Date().toISOString()}] UPDATE_REQUEST for ${id}: ${JSON.stringify(updates)}\n`);
+        } catch (e) { }
+
         const turf = await prisma.turf.findUnique({
             where: { id }
         });
@@ -67,11 +73,11 @@ export async function PUT(
         }
 
         const data: any = {};
-        const allowedFields = ['name', 'location', 'sport_type', 'price_per_hour', 'opening_time', 'closing_time', 'image_url', 'status', 'description', 'amenities', 'precautions', 'images', 'operational_status', 'weekday_price', 'weekend_price', 'peak_hour_multiplier', 'peak_start_time', 'peak_end_time'];
+        const allowedFields = ['name', 'location', 'sport_type', 'price_per_hour', 'opening_time', 'closing_time', 'image_url', 'status', 'description', 'amenities', 'precautions', 'images', 'operational_status', 'weekday_price', 'weekend_price', 'peak_hour_multiplier', 'peak_start_time', 'peak_end_time', 'latitude', 'longitude', 'address'];
 
         for (const field of allowedFields) {
             if (updates[field] !== undefined && updates[field] !== null) {
-                if (['price_per_hour', 'weekday_price', 'weekend_price', 'peak_hour_multiplier'].includes(field)) {
+                if (['price_per_hour', 'weekday_price', 'weekend_price', 'peak_hour_multiplier', 'latitude', 'longitude'].includes(field)) {
                     const val = Number(updates[field]);
                     if (!isNaN(val)) {
                         data[field] = val;
@@ -95,71 +101,59 @@ export async function PUT(
             data
         });
 
-        // Regenerate slots if timing changed
-        if (updates.opening_time || updates.closing_time) {
+        // Regenerate slots ONLY if timing actually changed
+        const timingChanged = updates.opening_time || updates.closing_time;
+
+        if (timingChanged) {
             const today = new Date();
+            today.setHours(0, 0, 0, 0);
 
             for (let i = 0; i < 7; i++) {
                 const date = new Date(today);
                 date.setDate(today.getDate() + i);
 
-                // Use local date parts to avoid UTC shift
                 const Y = date.getFullYear();
-                const M = String(date.getMonth() + 1).padStart(2, '0');
-                const D = String(date.getDate()).padStart(2, '0');
-                const normalizedDate = new Date(`${Y}-${M}-${D}T00:00:00Z`);
-
-                console.log(`Regenerating slots for ${Y}-${M}-${D}`);
+                const M = date.getMonth();
+                const D = date.getDate();
+                const normalizedDate = new Date(Date.UTC(Y, M, D));
 
                 try {
-                    // Delete only unbooked slots for this date/turf
+                    // Delete unbooked slots for this date
                     await prisma.slot.deleteMany({
                         where: {
                             turf_id: id,
                             date: normalizedDate,
                             is_booked: false,
-                            booking: null
+                            booking: { is: null }
                         }
                     });
 
-                    const opening = updatedTurf.opening_time || "06:00";
-                    const closing = updatedTurf.closing_time || "22:00";
+                    const opening = updates.opening_time || updatedTurf.opening_time || "06:00";
+                    const closing = updates.closing_time || updatedTurf.closing_time || "22:00";
                     const startHour = parseInt(opening.split(':')[0]);
                     const endHour = parseInt(closing.split(':')[0]);
 
-                    const newSlots = [];
+                    if (isNaN(startHour) || isNaN(endHour)) continue;
+
+                    const slotsToCreate = [];
                     for (let h = startHour; h < endHour; h++) {
-                        const startTime = `${h.toString().padStart(2, '0')}:00`;
-                        const endTime = `${(h + 1).toString().padStart(2, '0')}:00`;
-
-                        // Check if a booked slot already exists at this time
-                        const exists = await prisma.slot.findUnique({
-                            where: {
-                                turf_id_date_start_time_end_time: {
-                                    turf_id: id,
-                                    date: normalizedDate,
-                                    start_time: startTime,
-                                    end_time: endTime
-                                }
-                            }
+                        slotsToCreate.push({
+                            turf_id: id,
+                            date: normalizedDate,
+                            start_time: `${h.toString().padStart(2, '0')}:00`,
+                            end_time: `${(h + 1).toString().padStart(2, '0')}:00`,
+                            is_booked: false
                         });
-
-                        if (!exists) {
-                            newSlots.push({
-                                turf_id: id,
-                                date: normalizedDate,
-                                start_time: startTime,
-                                end_time: endTime,
-                                is_booked: false
-                            });
-                        }
                     }
 
-                    if (newSlots.length > 0) {
-                        await prisma.slot.createMany({ data: newSlots, skipDuplicates: true });
+                    if (slotsToCreate.length > 0) {
+                        await prisma.slot.createMany({
+                            data: slotsToCreate,
+                            skipDuplicates: true
+                        });
                     }
-                } catch (slotErr) {
-                    console.error(`Error regenerating slots for ${id} on ${Y}-${M}-${D}:`, slotErr);
+                } catch (slotErr: any) {
+                    console.error(`Error regenerating slots for ${id}:`, slotErr.message);
                 }
             }
         }
@@ -167,6 +161,13 @@ export async function PUT(
         return NextResponse.json(updatedTurf);
     } catch (error: any) {
         console.error("Update turf error:", error);
+        // Temporary debug logging to a file we can read
+        try {
+            const fs = require('fs');
+            const logMsg = `[${new Date().toISOString()}] UPDATE_ERROR: ${error.message}\n${error.stack}\n\n`;
+            fs.appendFileSync('api_error_debug.log', logMsg);
+        } catch (e) { }
+
         return NextResponse.json({
             error: 'Internal Server Error',
             details: error.message,

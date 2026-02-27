@@ -3,7 +3,7 @@
 import Shell from "@/components/Shell";
 import { useState, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { ArrowLeft, Loader2, Save, ImagePlus, X, AlertCircle, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Loader2, Save, ImagePlus, X, AlertCircle, CheckCircle2, Crosshair } from "lucide-react";
 import Link from "next/link";
 
 export default function EditTurf() {
@@ -25,7 +25,12 @@ export default function EditTurf() {
         opening_time: "06:00",
         closing_time: "22:00",
         image_url: "",
+        latitude: "",
+        longitude: "",
+        address: "",
     });
+
+    const [detectingLocation, setDetectingLocation] = useState(false);
 
     const amenitiesList = [
         "Parking", "Floodlights", "Washroom", "Changing Room",
@@ -68,6 +73,9 @@ export default function EditTurf() {
                     opening_time: data.opening_time || "06:00",
                     closing_time: data.closing_time || "22:00",
                     image_url: data.image_url || "",
+                    latitude: String(data.latitude || ""),
+                    longitude: String(data.longitude || ""),
+                    address: data.address || "",
                 });
                 if (data.image_url) setImagePreview(data.image_url);
                 setLoading(false);
@@ -124,7 +132,10 @@ export default function EditTurf() {
                     weekend_price: parseFloat(formData.weekend_price || "0"),
                     peak_hour_multiplier: parseFloat(formData.peak_hour_multiplier || "1"),
                     peak_start_time: formData.peak_start_time,
-                    peak_end_time: formData.peak_end_time
+                    peak_end_time: formData.peak_end_time,
+                    latitude: formData.latitude ? parseFloat(formData.latitude) : 0,
+                    longitude: formData.longitude ? parseFloat(formData.longitude) : 0,
+                    address: formData.address,
                 }),
             });
 
@@ -134,7 +145,10 @@ export default function EditTurf() {
             setMessage({ type: 'success', text: "Arena updated successfully! Redirecting..." });
             setTimeout(() => router.push("/admin/dashboard"), 1500);
         } catch (err: any) {
-            setMessage({ type: 'error', text: err.message });
+            console.error("Update error details:", err);
+            // If the error response has details, show them
+            const errorText = err.message || "An unknown error occurred";
+            setMessage({ type: 'error', text: errorText });
         } finally {
             setSaving(false);
         }
@@ -240,6 +254,74 @@ export default function EditTurf() {
                                 placeholder="e.g. Area 51, Downtown"
                                 value={formData.location}
                                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                                className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-600 font-medium text-slate-800"
+                            />
+                        </div>
+
+                        {/* GPS Location Section */}
+                        <div className="space-y-4 md:col-span-2">
+                            <div className="flex items-center justify-between">
+                                <label className="text-sm font-bold text-slate-700 uppercase tracking-wider">GPS Coordinates</label>
+                                <button
+                                    type="button"
+                                    disabled={detectingLocation}
+                                    onClick={() => {
+                                        setDetectingLocation(true);
+                                        navigator.geolocation.getCurrentPosition(
+                                            (pos) => {
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    latitude: String(pos.coords.latitude),
+                                                    longitude: String(pos.coords.longitude),
+                                                }));
+                                                setDetectingLocation(false);
+                                            },
+                                            () => {
+                                                setMessage({ type: 'error', text: 'Could not detect location. Please enter manually.' });
+                                                setDetectingLocation(false);
+                                            },
+                                            { enableHighAccuracy: true, timeout: 10000 }
+                                        );
+                                    }}
+                                    className="inline-flex items-center space-x-2 text-xs font-bold text-indigo-600 hover:text-indigo-700 transition-colors px-3 py-1.5 bg-indigo-50 rounded-xl"
+                                >
+                                    {detectingLocation ? <Loader2 size={14} className="animate-spin" /> : <Crosshair size={14} />}
+                                    <span>{detectingLocation ? 'Detecting...' : 'Detect My Location'}</span>
+                                </button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Latitude</label>
+                                    <input
+                                        type="number"
+                                        step="any"
+                                        placeholder="e.g. 12.9716"
+                                        value={formData.latitude}
+                                        onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
+                                        className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-600 font-medium text-slate-800"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Longitude</label>
+                                    <input
+                                        type="number"
+                                        step="any"
+                                        placeholder="e.g. 77.5946"
+                                        value={formData.longitude}
+                                        onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
+                                        className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-600 font-medium text-slate-800"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-2 md:col-span-2">
+                            <label className="text-sm font-bold text-slate-700 uppercase tracking-wider">Full Address</label>
+                            <input
+                                type="text"
+                                placeholder="e.g. 42, 3rd Cross, Indiranagar, Bangalore 560038"
+                                value={formData.address}
+                                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                                 className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-600 font-medium text-slate-800"
                             />
                         </div>
