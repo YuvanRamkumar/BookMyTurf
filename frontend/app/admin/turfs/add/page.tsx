@@ -15,7 +15,12 @@ export default function AddTurf() {
         amenities: [] as string[],
         precautions: [] as string[],
         sport_type: "Football/Cricket" as const,
-        price_per_hour: "",
+        price_per_hour: "1000",
+        weekday_price: "1000",
+        weekend_price: "1200",
+        peak_hour_multiplier: "1.2",
+        peak_start_time: "18:00",
+        peak_end_time: "21:00",
         opening_time: "06:00",
         closing_time: "22:00",
         image_url: "",
@@ -83,7 +88,15 @@ export default function AddTurf() {
             const res = await fetch("/api/turfs", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({
+                    ...formData,
+                    price_per_hour: parseFloat(formData.weekday_price),
+                    weekday_price: parseFloat(formData.weekday_price),
+                    weekend_price: parseFloat(formData.weekend_price),
+                    peak_hour_multiplier: parseFloat(formData.peak_hour_multiplier),
+                    peak_start_time: formData.peak_start_time,
+                    peak_end_time: formData.peak_end_time
+                }),
             });
 
             if (!res.ok) throw new Error("Failed to add turf");
@@ -194,15 +207,67 @@ export default function AddTurf() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700 uppercase tracking-wider">Price (₹ / hr)</label>
+                            <label className="text-sm font-bold text-slate-700 uppercase tracking-wider">Weekday Price (₹ / hr)</label>
                             <input
                                 required
                                 type="number"
-                                placeholder="800"
-                                value={formData.price_per_hour}
-                                onChange={(e) => setFormData({ ...formData, price_per_hour: e.target.value })}
+                                placeholder="1000"
+                                min="0"
+                                value={formData.weekday_price}
+                                onChange={(e) => setFormData({ ...formData, weekday_price: e.target.value })}
                                 className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-600 font-medium text-slate-800"
                             />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700 uppercase tracking-wider">Weekend Price (₹ / hr)</label>
+                            <input
+                                required
+                                type="number"
+                                placeholder="1200"
+                                min="0"
+                                value={formData.weekend_price}
+                                onChange={(e) => setFormData({ ...formData, weekend_price: e.target.value })}
+                                className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-600 font-medium text-slate-800"
+                            />
+                        </div>
+
+                        <div className="space-y-1">
+                            <label className="text-sm font-bold text-slate-700 uppercase tracking-wider">Peak Hour Multiplier</label>
+                            <input
+                                required
+                                type="number"
+                                step="0.1"
+                                min="1"
+                                placeholder="1.2"
+                                value={formData.peak_hour_multiplier}
+                                onChange={(e) => setFormData({ ...formData, peak_hour_multiplier: e.target.value })}
+                                className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-600 font-medium text-slate-800"
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-slate-700 uppercase tracking-wider text-[10px]">Peak Start</label>
+                                <input
+                                    required
+                                    type="time"
+                                    value={formData.peak_start_time}
+                                    onChange={(e) => setFormData({ ...formData, peak_start_time: e.target.value })}
+                                    className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-600 font-medium text-slate-800"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-slate-700 uppercase tracking-wider text-[10px]">Peak End</label>
+                                <input
+                                    required
+                                    type="time"
+                                    value={formData.peak_end_time}
+                                    onChange={(e) => setFormData({ ...formData, peak_end_time: e.target.value })}
+                                    className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-600 font-medium text-slate-800"
+                                />
+                            </div>
+                            <p className="col-span-2 text-[10px] text-slate-500 font-medium px-1 italic">Peak multiplier applies between start and end time.</p>
                         </div>
 
                         <div className="space-y-2 md:col-span-2">

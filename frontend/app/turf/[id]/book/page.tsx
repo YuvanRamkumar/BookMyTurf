@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { formatCurrency, cn } from "@/lib/utils";
 import { format, addDays, isSameDay } from "date-fns";
+import { calculateDynamicPrice, isWeekend, isPeakHour } from "@/lib/pricing";
 
 export default function BookingPage() {
     const { id } = useParams();
@@ -81,9 +82,22 @@ export default function BookingPage() {
 
     if (loading || !turf) return <Shell><div className="flex justify-center py-20"><Loader2 className="animate-spin text-indigo-600 w-10 h-10" /></div></Shell>;
 
-    const subtotal = (turf.price_per_hour || 0) * selectedSlots.length;
-    const platformFee = selectedSlots.length > 0 ? 20 : 0;
-    const totalPrice = subtotal + platformFee;
+    const getBookingBreakdown = () => {
+        let totalBase = 0;
+        let totalFinal = 0;
+        const selectedSlotDetails = selectedSlots.map(sid => slots.find(s => s.id === sid)).filter(Boolean);
+
+        selectedSlotDetails.forEach(s => {
+            const pricing = calculateDynamicPrice(turf, new Date(selectedDate), s.start_time);
+            totalBase += pricing.basePrice;
+            totalFinal += pricing.finalPrice;
+        });
+
+        return { totalBase, totalFinal, platformFee: selectedSlots.length > 0 ? 20 : 0 };
+    };
+
+    const { totalBase, totalFinal, platformFee } = getBookingBreakdown();
+    const totalPrice = totalFinal + platformFee;
 
     const currentTimeStr = format(new Date(), "HH:mm");
     const todayStr = format(new Date(), "yyyy-MM-dd");
@@ -95,14 +109,14 @@ export default function BookingPage() {
                 <div className="flex items-center mb-8">
                     <button
                         onClick={() => router.push(`/turf/${id}`)}
-                        className="p-3 bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-indigo-600 hover:border-indigo-100 transition-all mr-6 group"
+                        className="p-3 bg-white/5 border border-white/10 rounded-2xl text-slate-400 hover:text-white hover:border-white/20 transition-all mr-6 group backdrop-blur-md"
                     >
                         <ChevronLeft size={24} className="group-hover:-translate-x-0.5 transition-transform" />
                     </button>
                     <div>
-                        <h1 className="text-3xl font-black text-slate-900 leading-none">Schedule Session</h1>
-                        <p className="text-slate-500 font-bold uppercase text-[10px] tracking-widest mt-2 flex items-center">
-                            <MapPin size={12} className="mr-1 text-indigo-500" /> {turf.location}
+                        <h1 className="text-3xl font-black text-white leading-none">Schedule Session</h1>
+                        <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest mt-2 flex items-center">
+                            <MapPin size={12} className="mr-1 text-blue-500" /> {turf.location}
                         </p>
                     </div>
                 </div>
@@ -124,10 +138,10 @@ export default function BookingPage() {
                         </div>
 
                         {/* Date Picker */}
-                        <div className="bg-white rounded-[40px] p-8 border border-slate-100 shadow-sm">
+                        <div className="bg-slate-900/50 backdrop-blur-xl rounded-[40px] p-8 border border-white/5 shadow-2xll">
                             <div className="flex items-center justify-between mb-8">
-                                <h3 className="text-xl font-black text-slate-900 flex items-center">
-                                    <Calendar size={22} className="mr-3 text-indigo-600" />
+                                <h3 className="text-xl font-black text-white flex items-center">
+                                    <Calendar size={22} className="mr-3 text-blue-500" />
                                     Select Date
                                 </h3>
                             </div>
@@ -143,8 +157,8 @@ export default function BookingPage() {
                                             className={cn(
                                                 "flex flex-col items-center justify-center min-w-[90px] h-32 rounded-3xl border-2 transition-all duration-300 group",
                                                 isSelected
-                                                    ? "bg-indigo-600 border-indigo-600 text-white shadow-2xl shadow-indigo-200 scale-105"
-                                                    : "bg-white border-slate-50 text-slate-400 hover:border-indigo-100 hover:text-slate-600"
+                                                    ? "bg-blue-600 border-blue-600 text-white shadow-2xl shadow-blue-900/40 scale-105"
+                                                    : "bg-white/5 border-white/5 text-slate-400 hover:border-white/20 hover:text-white"
                                             )}
                                         >
                                             <span className="text-[10px] uppercase font-black tracking-widest mb-2 opacity-60 group-hover:opacity-100">{format(date, "EEE")}</span>
@@ -157,10 +171,10 @@ export default function BookingPage() {
                         </div>
 
                         {/* Slots */}
-                        <div className="bg-white rounded-[40px] p-8 border border-slate-100 shadow-sm">
+                        <div className="bg-slate-900/50 backdrop-blur-xl rounded-[40px] p-8 border border-white/5 shadow-2xl">
                             <div className="flex items-center justify-between mb-8">
-                                <h3 className="text-xl font-black text-slate-900 flex items-center">
-                                    <Clock size={22} className="mr-3 text-indigo-600" />
+                                <h3 className="text-xl font-black text-white flex items-center">
+                                    <Clock size={22} className="mr-3 text-blue-500" />
                                     Available Slots
                                 </h3>
                                 <div className="flex items-center space-x-4">
@@ -169,6 +183,9 @@ export default function BookingPage() {
                                     </div>
                                     <div className="flex items-center text-[10px] font-black uppercase tracking-widest text-slate-400">
                                         <div className="w-2 h-2 bg-rose-500 rounded-full mr-2"></div> Booked
+                                    </div>
+                                    <div className="flex items-center text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                        <div className="w-2 h-2 bg-amber-500 rounded-full mr-2"></div> Peak Hour
                                     </div>
                                 </div>
                             </div>
@@ -179,39 +196,42 @@ export default function BookingPage() {
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    {slots.map((slot) => {
-                                        const isSelected = selectedSlots.includes(slot.id);
-                                        const isPast = selectedDate === todayStr && slot.start_time < currentTimeStr;
-                                        const isBooked = slot.is_booked;
+                                    {slots
+                                        .filter(slot => {
+                                            const isPast = selectedDate === todayStr && slot.start_time < currentTimeStr;
+                                            return !isPast; // Hide past slots
+                                        })
+                                        .map((slot) => {
+                                            const isSelected = selectedSlots.includes(slot.id);
+                                            const isBooked = slot.is_booked;
+                                            const pricing = calculateDynamicPrice(turf, new Date(selectedDate), slot.start_time);
 
-                                        return (
-                                            <button
-                                                key={slot.id}
-                                                disabled={isBooked || isPast}
-                                                onClick={() => toggleSlot(slot.id)}
-                                                className={cn(
-                                                    "p-6 rounded-[28px] border-2 font-black transition-all duration-200 flex flex-col items-center justify-center relative overflow-hidden group",
-                                                    isPast
-                                                        ? "bg-slate-50 border-transparent text-slate-300 cursor-not-allowed opacity-60"
-                                                        : isBooked
-                                                            ? "bg-rose-50 border-rose-100 text-rose-600 cursor-not-allowed"
+                                            return (
+                                                <button
+                                                    key={slot.id}
+                                                    disabled={isBooked}
+                                                    onClick={() => toggleSlot(slot.id)}
+                                                    className={cn(
+                                                        "p-6 rounded-[28px] border-2 font-black transition-all duration-200 flex flex-col items-center justify-center relative overflow-hidden group",
+                                                        isBooked
+                                                            ? "bg-rose-500/10 border-rose-500/20 text-rose-500 cursor-not-allowed"
                                                             : isSelected
-                                                                ? "bg-indigo-600 border-indigo-600 text-white shadow-xl shadow-indigo-100 scale-95"
-                                                                : "bg-white border-slate-100 text-slate-700 hover:border-indigo-600 hover:text-indigo-600"
-                                                )}
-                                            >
-                                                <div className="flex flex-col items-center">
-                                                    <span className="text-lg leading-none">{slot.start_time}</span>
-                                                    <span className="text-[10px] uppercase opacity-40 mt-1">To</span>
-                                                    <span className="text-lg leading-none">{slot.end_time}</span>
-                                                </div>
-                                                <div className={cn(
-                                                    "absolute bottom-0 left-0 w-full h-1",
-                                                    isPast ? "bg-slate-200" : isBooked ? "bg-rose-400" : isSelected ? "bg-white" : "bg-emerald-400"
-                                                )}></div>
-                                            </button>
-                                        );
-                                    })}
+                                                                ? "bg-blue-600 border-blue-600 text-white shadow-xl shadow-blue-900/40 scale-95"
+                                                                : "bg-white/5 border-white/5 text-slate-300 hover:border-blue-500/50 hover:text-white"
+                                                    )}
+                                                >
+                                                    <div className="flex flex-col items-center">
+                                                        <span className="text-lg leading-none">{slot.start_time}</span>
+                                                        <span className="text-[10px] uppercase opacity-40 mt-1">To</span>
+                                                        <span className="text-lg leading-none">{slot.end_time}</span>
+                                                    </div>
+                                                    <div className={cn(
+                                                        "absolute bottom-0 left-0 w-full h-1",
+                                                        isBooked ? "bg-rose-400" : isSelected ? "bg-white" : pricing.isPeak ? "bg-amber-400" : "bg-emerald-400"
+                                                    )}></div>
+                                                </button>
+                                            );
+                                        })}
                                 </div>
                             )}
 
@@ -226,9 +246,9 @@ export default function BookingPage() {
 
                     {/* Right: Booking Summary */}
                     <div className="lg:col-span-1">
-                        <div className="bg-white rounded-[48px] p-8 border border-slate-100 shadow-xl shadow-slate-100/50 sticky top-8">
-                            <h3 className="text-2xl font-black text-slate-900 mb-8 flex items-center">
-                                <Info size={24} className="mr-3 text-indigo-600" />
+                        <div className="bg-slate-900/50 backdrop-blur-xl rounded-[48px] p-8 border border-white/5 shadow-2xl sticky top-8">
+                            <h3 className="text-2xl font-black text-white mb-8 flex items-center">
+                                <Info size={24} className="mr-3 text-blue-500" />
                                 Payment Summary
                             </h3>
 
@@ -237,37 +257,56 @@ export default function BookingPage() {
                                     {selectedSlots.length > 0 ? (
                                         selectedSlots.map(sid => {
                                             const s = slots.find(x => x.id === sid);
-                                            return s ? (
-                                                <div key={sid} className="flex justify-between items-center bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100">
+                                            if (!s) return null;
+                                            const pricing = calculateDynamicPrice(turf, new Date(selectedDate), s.start_time);
+
+                                            return (
+                                                <div key={sid} className="flex justify-between items-center bg-blue-500/10 p-4 rounded-2xl border border-blue-500/20">
                                                     <div>
-                                                        <p className="font-black text-indigo-600 text-sm leading-none">{s.start_time} – {s.end_time}</p>
-                                                        <p className="text-[10px] font-black uppercase text-slate-400 mt-1.5">{format(new Date(selectedDate), "EEE, MMM dd")}</p>
+                                                        <div className="flex items-center space-x-2">
+                                                            <p className="font-black text-blue-400 text-sm leading-none">{s.start_time} – {s.end_time}</p>
+                                                            {pricing.isPeak && (
+                                                                <span className="bg-amber-500/20 text-amber-500 text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter">Peak</span>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-[10px] font-black uppercase text-slate-500 mt-1.5">{format(new Date(selectedDate), "EEE, MMM dd")}</p>
                                                     </div>
-                                                    <span className="font-black text-slate-900">{formatCurrency(turf.price_per_hour)}</span>
+                                                    <div className="text-right">
+                                                        <span className="font-black text-white block">{formatCurrency(pricing.finalPrice)}</span>
+                                                        {pricing.isPeak && <span className="text-[10px] text-slate-500 font-bold leading-none">x{pricing.multiplier}</span>}
+                                                    </div>
                                                 </div>
-                                            ) : null;
+                                            );
                                         })
                                     ) : (
-                                        <div className="py-10 text-center bg-slate-50 rounded-3xl border border-dashed border-slate-200">
-                                            <p className="text-xs font-black uppercase text-slate-400 tracking-widest">No slots selected</p>
+                                        <div className="py-10 text-center bg-white/5 rounded-3xl border border-dashed border-white/10">
+                                            <p className="text-xs font-black uppercase text-slate-500 tracking-widest">No slots selected</p>
                                         </div>
                                     )}
                                 </div>
 
-                                <div className="pt-6 border-t border-slate-100 space-y-4">
+                                <div className="pt-6 border-t border-white/5 space-y-4">
                                     <div className="flex justify-between items-center">
-                                        <span className="text-slate-500 font-bold uppercase text-[10px] tracking-widest">Subtotal</span>
-                                        <span className="font-bold text-slate-900">{formatCurrency(subtotal)}</span>
+                                        <span className="text-slate-500 font-bold uppercase text-[10px] tracking-widest">Base Amount</span>
+                                        <span className="font-bold text-white">{formatCurrency(totalBase)}</span>
                                     </div>
+                                    {totalFinal > totalBase && (
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-amber-500 font-bold uppercase text-[10px] tracking-widest flex items-center">
+                                                Peak Surge <Info size={10} className="ml-1" />
+                                            </span>
+                                            <span className="font-bold text-amber-500">+{formatCurrency(totalFinal - totalBase)}</span>
+                                        </div>
+                                    )}
                                     <div className="flex justify-between items-center text-xs">
                                         <span className="text-slate-500 font-bold uppercase text-[10px] tracking-widest">Platform Fee</span>
-                                        <span className="font-bold text-slate-900">{formatCurrency(platformFee)}</span>
+                                        <span className="font-bold text-white">{formatCurrency(platformFee)}</span>
                                     </div>
                                     <div className="pt-4 flex justify-between items-center">
-                                        <span className="text-slate-900 font-black text-xl leading-none">Total</span>
+                                        <span className="text-white font-black text-xl leading-none">Total</span>
                                         <div className="text-right">
-                                            <span className="text-3xl font-black text-indigo-600 leading-none block">{formatCurrency(totalPrice)}</span>
-                                            <span className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">All inclusive</span>
+                                            <span className="text-3xl font-black text-blue-500 leading-none block">{formatCurrency(totalPrice)}</span>
+                                            <span className="text-[10px] font-black uppercase text-slate-500 tracking-tighter">All inclusive</span>
                                         </div>
                                     </div>
                                 </div>

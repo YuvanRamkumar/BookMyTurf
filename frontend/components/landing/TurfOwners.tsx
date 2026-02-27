@@ -3,6 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { CheckCircle2, TrendingUp, Calendar, Zap, LayoutDashboard } from "lucide-react";
+import Link from "next/link";
 
 const benefits = [
     "Dynamic Pricing Engine",
@@ -132,13 +133,15 @@ export const TurfOwners = () => {
                             ))}
                         </div>
 
-                        <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all shadow-xl shadow-blue-900/40"
-                        >
-                            List Your Turf Now
-                        </motion.button>
+                        <Link href="/register">
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all shadow-xl shadow-blue-900/40"
+                            >
+                                List Your Turf Now
+                            </motion.button>
+                        </Link>
                     </div>
                 </div>
             </div>

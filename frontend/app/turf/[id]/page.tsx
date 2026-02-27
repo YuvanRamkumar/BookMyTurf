@@ -7,7 +7,8 @@ import {
     MapPin, Trophy, Star, Clock, AlertCircle,
     CheckCircle2, Loader2, Info, ListChecks,
     CheckSquare, MessageSquare, Plus,
-    Car, Zap, Bath, Shirt, Droplets, Layout, UtensilsCrossed, Lock
+    Car, Zap, Bath, Shirt, Droplets, Layout, UtensilsCrossed, Lock,
+    ChevronLeft
 } from "lucide-react";
 import { formatCurrency, cn } from "@/lib/utils";
 import Link from "next/link";
@@ -81,9 +82,23 @@ export default function TurfDashboard() {
 
     return (
         <Shell>
-            <div className="max-w-5xl mx-auto space-y-12">
+            <div className="max-w-5xl mx-auto space-y-8">
+                {/* Back Button */}
+                <div className="flex items-center">
+                    <button
+                        onClick={() => router.push('/turfs')}
+                        className="p-3 bg-white/5 border border-white/10 rounded-2xl text-slate-400 hover:text-white hover:border-white/20 transition-all mr-6 group backdrop-blur-md"
+                    >
+                        <ChevronLeft size={24} className="group-hover:-translate-x-0.5 transition-transform" />
+                    </button>
+                    <div>
+                        <h2 className="text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Explore Arenas</h2>
+                        <p className="text-xl font-black text-white leading-none">Arena Details</p>
+                    </div>
+                </div>
+
                 {/* 1️⃣ Hero Section */}
-                <section className="bg-white rounded-[48px] overflow-hidden border border-slate-100 shadow-xl shadow-slate-100/50">
+                <section className="bg-slate-900/50 backdrop-blur-xl rounded-[48px] overflow-hidden border border-white/5 shadow-2xl">
                     <div className="grid grid-cols-1 md:grid-cols-2">
                         {/* Image Carousel Mock (Using single image for now as requested images array is string[]) */}
                         <div className="h-[400px] bg-slate-100 relative group">
@@ -106,20 +121,20 @@ export default function TurfDashboard() {
                         {/* Quick Info */}
                         <div className="p-10 flex flex-col justify-between">
                             <div>
-                                <h1 className="text-4xl font-black text-slate-900 mb-2 leading-tight uppercase tracking-tight">{turf.name}</h1>
-                                <div className="flex items-center text-slate-500 mb-6 font-bold">
-                                    <MapPin size={18} className="mr-2 text-indigo-500" />
+                                <h1 className="text-4xl font-black text-white mb-2 leading-tight uppercase tracking-tight">{turf.name}</h1>
+                                <div className="flex items-center text-slate-400 mb-6 font-bold">
+                                    <MapPin size={18} className="mr-2 text-blue-500" />
                                     <span>{turf.location}</span>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-6 mb-8">
                                     <div className="flex items-center space-x-3">
-                                        <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
+                                        <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-400">
                                             <Trophy size={20} />
                                         </div>
                                         <div>
-                                            <p className="text-[10px] font-black uppercase text-slate-400">Price</p>
-                                            <p className="font-black text-indigo-600 text-lg">{formatCurrency(turf.price_per_hour)}/hr</p>
+                                            <p className="text-[10px] font-black uppercase text-slate-500">Price</p>
+                                            <p className="font-black text-blue-500 text-lg">{formatCurrency(turf.price_per_hour)}/hr</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center space-x-3">
@@ -132,12 +147,26 @@ export default function TurfDashboard() {
                                         </div>
                                     </div>
                                     <div className="flex items-center space-x-3 col-span-2">
-                                        <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-600">
+                                        <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-slate-400">
                                             <Clock size={20} />
                                         </div>
                                         <div>
-                                            <p className="text-[10px] font-black uppercase text-slate-400">Operating Hours</p>
-                                            <p className="font-black text-slate-900">{turf.opening_time} – {turf.closing_time}</p>
+                                            <p className="text-[10px] font-black uppercase text-slate-500">Operating Hours</p>
+                                            <p className="font-black text-white">{turf.opening_time} – {turf.closing_time}</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Dynamic Pricing Info */}
+                                    <div className="col-span-2 p-5 bg-amber-500/10 rounded-3xl border border-amber-500/20 flex items-start space-x-4">
+                                        <div className="p-2 bg-amber-500 text-white rounded-xl">
+                                            <Zap size={18} />
+                                        </div>
+                                        <div>
+                                            <h4 className="text-xs font-black text-amber-500 uppercase tracking-widest mb-1">Peak Hour Pricing</h4>
+                                            <p className="text-slate-400 text-xs font-bold leading-relaxed">
+                                                Weekend stay: <span className="text-white">{formatCurrency(turf.weekend_price)}/hr</span>.
+                                                Peak surge ({turf.peak_start_time}-{turf.peak_end_time}) applies a <span className="text-white">{turf.peak_hour_multiplier}x</span> multiplier.
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -156,46 +185,46 @@ export default function TurfDashboard() {
                 {/* Grid for Sections */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {/* 2️⃣ About Section */}
-                    <section className="bg-white rounded-[40px] p-10 border border-slate-100 shadow-sm space-y-6">
+                    <section className="bg-slate-900/50 backdrop-blur-xl rounded-[40px] p-10 border border-white/5 shadow-2xl space-y-6">
                         <div className="flex items-center space-x-3">
-                            <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+                            <div className="p-2.5 bg-blue-500/10 text-blue-400 rounded-xl">
                                 <Info size={20} />
                             </div>
-                            <h2 className="text-2xl font-black text-slate-900">About Arena</h2>
+                            <h2 className="text-2xl font-black text-white">About Arena</h2>
                         </div>
-                        <p className="text-slate-600 leading-relaxed font-medium">
+                        <p className="text-slate-400 leading-relaxed font-medium">
                             {turf.description || "Exciting arena with top-tier facilities for the best sporting experience."}
                         </p>
 
-                        <div className="pt-6 border-t border-slate-50 grid grid-cols-2 gap-4">
+                        <div className="pt-6 border-t border-white/5 grid grid-cols-2 gap-4">
                             <div>
-                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Ground Details</h4>
-                                <p className="font-bold text-slate-900">Premium Synthetic Turf</p>
+                                <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Ground Details</h4>
+                                <p className="font-bold text-white">Premium Synthetic Turf</p>
                             </div>
                             <div>
-                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Size</h4>
-                                <p className="font-bold text-slate-900">7-aside / 40x80m</p>
+                                <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Size</h4>
+                                <p className="font-bold text-white">7-aside / 40x80m</p>
                             </div>
                         </div>
                     </section>
 
                     {/* 3️⃣ Amenities Section */}
-                    <section className="bg-white rounded-[40px] p-10 border border-slate-100 shadow-sm space-y-6">
+                    <section className="bg-slate-900/50 backdrop-blur-xl rounded-[40px] p-10 border border-white/5 shadow-2xl space-y-6">
                         <div className="flex items-center space-x-3">
-                            <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+                            <div className="p-2.5 bg-blue-500/10 text-blue-400 rounded-xl">
                                 <ListChecks size={20} />
                             </div>
-                            <h2 className="text-2xl font-black text-slate-900">Amenities</h2>
+                            <h2 className="text-2xl font-black text-white">Amenities</h2>
                         </div>
                         <div className="grid grid-cols-2 gap-y-4 gap-x-6">
                             {(turf.amenities && turf.amenities.length > 0 ? turf.amenities : ["Parking", "Washroom", "Drinking Water"]).map((item: string) => {
                                 const Icon = amenityIconMap[item] || CheckCircle2;
                                 return (
-                                    <div key={item} className="flex items-center space-x-3 bg-slate-50 p-4 rounded-2xl group hover:bg-white hover:shadow-lg hover:shadow-slate-100 transition-all border border-transparent hover:border-slate-100">
-                                        <div className="p-2 bg-white rounded-xl shadow-sm group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                                    <div key={item} className="flex items-center space-x-3 bg-white/5 p-4 rounded-2xl group hover:bg-blue-600/10 transition-all border border-transparent hover:border-white/10">
+                                        <div className="p-2 bg-white/5 rounded-xl shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-all text-slate-400">
                                             <Icon size={18} />
                                         </div>
-                                        <span className="font-bold text-slate-700 text-sm">{item}</span>
+                                        <span className="font-bold text-slate-300 text-sm">{item}</span>
                                     </div>
                                 );
                             })}
@@ -203,12 +232,12 @@ export default function TurfDashboard() {
                     </section>
 
                     {/* 4️⃣ Precautions Section */}
-                    <section className="bg-white rounded-[40px] p-10 border border-slate-100 shadow-sm space-y-6 md:col-span-2">
+                    <section className="bg-slate-900/50 backdrop-blur-xl rounded-[40px] p-10 border border-white/5 shadow-2xl space-y-6 md:col-span-2">
                         <div className="flex items-center space-x-3">
-                            <div className="p-2.5 bg-rose-50 text-rose-600 rounded-xl">
+                            <div className="p-2.5 bg-rose-500/10 text-rose-400 rounded-xl">
                                 <AlertCircle size={20} />
                             </div>
-                            <h2 className="text-2xl font-black text-slate-900">Rules & Precautions</h2>
+                            <h2 className="text-2xl font-black text-white">Rules & Precautions</h2>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {(turf.precautions && turf.precautions.length > 0 ? turf.precautions : [
@@ -217,25 +246,25 @@ export default function TurfDashboard() {
                                 "No smoking allowed inside arena",
                                 "Required footwear: Multi-studs / Flats"
                             ]).filter((p: string) => p.trim().length > 0).map((rule: string) => (
-                                <div key={rule} className="flex items-center space-x-4 p-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                                    <CheckSquare size={18} className="text-emerald-500 shrink-0" />
-                                    <span className="font-bold text-slate-600 text-sm leading-snug">{rule}</span>
+                                <div key={rule} className="flex items-center space-x-4 p-4 bg-white/5 rounded-2xl border border-dashed border-white/10">
+                                    <CheckSquare size={18} className="text-emerald-400 shrink-0" />
+                                    <span className="font-bold text-slate-400 text-sm leading-snug">{rule}</span>
                                 </div>
                             ))}
                         </div>
                     </section>
 
                     {/* 5️⃣ Reviews Section */}
-                    <section className="bg-white rounded-[40px] p-10 border border-slate-100 shadow-sm space-y-8 md:col-span-2">
+                    <section className="bg-slate-900/50 backdrop-blur-xl rounded-[40px] p-10 border border-white/5 shadow-2xl space-y-8 md:col-span-2">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-3">
-                                <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
+                                <div className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-xl">
                                     <MessageSquare size={20} />
                                 </div>
-                                <h2 className="text-2xl font-black text-slate-900">Member Reviews</h2>
+                                <h2 className="text-2xl font-black text-white">Member Reviews</h2>
                             </div>
                             {canReview && (
-                                <button className="inline-flex items-center px-6 py-3 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all text-sm shadow-xl">
+                                <button className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all text-sm shadow-xl shadow-blue-900/40">
                                     <Plus size={16} className="mr-2" />
                                     Write Review
                                 </button>
@@ -245,21 +274,21 @@ export default function TurfDashboard() {
                         {turf.reviews && turf.reviews.length > 0 ? (
                             <div className="space-y-6">
                                 {turf.reviews.map((rev: any) => (
-                                    <div key={rev.id} className="p-6 bg-slate-50 rounded-[32px] border border-slate-100 flex flex-col md:flex-row md:items-start gap-6">
-                                        <div className="w-14 h-14 bg-white rounded-2xl border border-slate-100 flex items-center justify-center font-black text-indigo-600 shrink-0 text-xl shadow-sm">
+                                    <div key={rev.id} className="p-6 bg-white/5 rounded-[32px] border border-white/10 flex flex-col md:flex-row md:items-start gap-6">
+                                        <div className="w-14 h-14 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-center font-black text-blue-400 shrink-0 text-xl shadow-sm">
                                             {rev.user?.name?.charAt(0) || 'U'}
                                         </div>
                                         <div className="flex-1 space-y-2">
                                             <div className="flex items-center justify-between">
-                                                <h4 className="font-black text-slate-900">{rev.user?.name || 'Anonymous Lover'}</h4>
-                                                <span className="text-[10px] font-black uppercase text-slate-400">{format(new Date(rev.created_at), "MMM dd, yyyy")}</span>
+                                                <h4 className="font-black text-white">{rev.user?.name || 'Anonymous Lover'}</h4>
+                                                <span className="text-[10px] font-black uppercase text-slate-500">{format(new Date(rev.created_at), "MMM dd, yyyy")}</span>
                                             </div>
-                                            <div className="flex items-center space-x-1 text-emerald-500 mb-2">
+                                            <div className="flex items-center space-x-1 text-emerald-400 mb-2">
                                                 {Array.from({ length: 5 }).map((_, i) => (
                                                     <Star key={i} size={14} fill={i < rev.rating ? "currentColor" : "none"} strokeWidth={2.5} />
                                                 ))}
                                             </div>
-                                            <p className="text-slate-600 text-sm font-medium leading-relaxed italic">
+                                            <p className="text-slate-400 text-sm font-medium leading-relaxed italic">
                                                 "{rev.comment}"
                                             </p>
                                         </div>
@@ -267,9 +296,9 @@ export default function TurfDashboard() {
                                 ))}
                             </div>
                         ) : (
-                            <div className="text-center py-20 bg-slate-50 rounded-[40px] border border-dashed border-slate-200">
-                                <MessageSquare size={48} className="text-slate-200 mx-auto mb-4" />
-                                <h3 className="text-xl font-bold text-slate-900 mb-1">No reviews yet</h3>
+                            <div className="text-center py-20 bg-white/5 rounded-[40px] border border-dashed border-white/10">
+                                <MessageSquare size={48} className="text-white/10 mx-auto mb-4" />
+                                <h3 className="text-xl font-bold text-white mb-1">No reviews yet</h3>
                                 <p className="text-slate-500 font-medium">Be the first to share your experience!</p>
                             </div>
                         )}

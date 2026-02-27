@@ -1,10 +1,32 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ChevronRight, Play, Users, MapPin, Calendar } from "lucide-react";
+import Link from "next/link";
 
 export const Hero = () => {
+    const [stats, setStats] = useState({
+        turfCount: 0,
+        bookingCount: 0,
+        cityCount: 0
+    });
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const res = await fetch("/api/stats");
+                const data = await res.json();
+                if (data && !data.error) {
+                    setStats(data);
+                }
+            } catch (err) {
+                console.error("Failed to fetch stats:", err);
+            }
+        };
+        fetchStats();
+    }, []);
+
     return (
         <section className="relative min-h-screen flex items-center pt-20 overflow-hidden bg-slate-950">
             {/* Background Gradients */}
@@ -33,7 +55,7 @@ export const Hero = () => {
                         >
                             <span className="flex h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
                             <span className="text-blue-400 text-xs font-semibold uppercase tracking-wider">
-                                Now Live in 12 Cities
+                                Now Live in {stats.cityCount > 1 ? stats.cityCount : 12} Cities
                             </span>
                         </motion.div>
 
@@ -50,10 +72,10 @@ export const Hero = () => {
                         </p>
 
                         <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4 mb-12">
-                            <button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center space-x-2 shadow-xl shadow-blue-900/40 active:scale-95">
+                            <Link href="/turfs" className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center space-x-2 shadow-xl shadow-blue-900/40 active:scale-95">
                                 <span>Explore Turfs</span>
                                 <ChevronRight size={20} />
-                            </button>
+                            </Link>
                             <button className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white border border-slate-700 px-8 py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center space-x-2 active:scale-95">
                                 <Play size={18} fill="currentColor" />
                                 <span>How It Works</span>
@@ -65,14 +87,14 @@ export const Hero = () => {
                             <div className="space-y-1">
                                 <div className="text-2xl font-bold text-white flex items-center space-x-2">
                                     <Users className="w-5 h-5 text-blue-500" />
-                                    <span>1000+</span>
+                                    <span>{stats.bookingCount > 0 ? `${stats.bookingCount}+` : "1000+"}</span>
                                 </div>
                                 <p className="text-slate-500 text-xs uppercase tracking-widest font-semibold">Matches</p>
                             </div>
                             <div className="space-y-1">
                                 <div className="text-2xl font-bold text-white flex items-center space-x-2">
                                     <MapPin className="w-5 h-5 text-green-500" />
-                                    <span>50+</span>
+                                    <span>{stats.turfCount > 0 ? `${stats.turfCount}+` : "50+"}</span>
                                 </div>
                                 <p className="text-slate-500 text-xs uppercase tracking-widest font-semibold">Turfs</p>
                             </div>
@@ -165,3 +187,4 @@ export const Hero = () => {
         </section>
     );
 };
+
