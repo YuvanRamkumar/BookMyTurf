@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Razorpay from 'razorpay';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
+import { calculateDynamicPrice } from '@/lib/pricing';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,7 +43,10 @@ export async function POST(request: NextRequest) {
                 turf_id: booking.turf_id,
                 status: 'PENDING'
             },
-            include: { turf: true }
+            include: {
+                turf: true,
+                slot: true
+            }
         });
 
         if (pendingBookings.length === 0) {
@@ -51,7 +55,13 @@ export async function POST(request: NextRequest) {
 
         // Amount in paise (1 INR = 100 paise)
         const platformFee = 20; // Example ₹20
-        const totalTurfPrice = pendingBookings.reduce((sum, b) => sum + b.turf.price_per_hour, 0);
+
+        let totalTurfPrice = 0;
+        pendingBookings.forEach(b => {
+            const pricing = calculateDynamicPrice(b.turf as any, new Date(b.slot.date), b.slot.start_time);
+            totalTurfPrice += pricing.finalPrice;
+        });
+
         const totalAmount = Math.round((totalTurfPrice + platformFee) * 100);
 
         const options = {

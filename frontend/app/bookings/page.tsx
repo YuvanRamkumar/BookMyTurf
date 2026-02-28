@@ -106,10 +106,10 @@ export default function BookingsPage() {
 
     const BookingCard = ({ booking, isHistory }: { booking: DetailedBooking; isHistory: boolean }) => (
         <div className={cn(
-            "bg-white p-7 rounded-[28px] border shadow-sm transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-6 group overflow-hidden relative",
+            "bg-slate-900/50 backdrop-blur-xl p-7 rounded-[28px] border transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-6 group overflow-hidden relative",
             isHistory
-                ? "border-slate-100 opacity-75 hover:opacity-100"
-                : "border-slate-100 hover:shadow-xl hover:shadow-slate-200/50",
+                ? "border-white/5 opacity-75 hover:opacity-100"
+                : "border-white/5 hover:border-blue-500/30 hover:shadow-2xl hover:shadow-blue-900/40",
             cancellingId === booking.id && "opacity-40 pointer-events-none"
         )}>
             {/* Decorative circle */}
@@ -132,25 +132,25 @@ export default function BookingsPage() {
                     <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                         <h3 className={cn(
                             "text-lg font-black truncate transition-colors",
-                            isHistory ? "text-slate-500" : "text-slate-900 group-hover:text-indigo-600"
+                            isHistory ? "text-slate-500" : "text-white group-hover:text-blue-400"
                         )}>
                             {booking.turf?.name}
                         </h3>
-                        <span className="text-[10px] px-2.5 py-1 bg-indigo-50 text-indigo-500 rounded-full font-black uppercase tracking-widest border border-indigo-100/50 shrink-0">
+                        <span className="text-[10px] px-2.5 py-1 bg-blue-500/10 text-blue-400 rounded-full font-black uppercase tracking-widest border border-blue-500/20 shrink-0">
                             {booking.turf?.sport_type}
                         </span>
                     </div>
                     <div className="flex flex-wrap items-center text-slate-400 text-xs font-bold uppercase tracking-wider gap-x-5 gap-y-1">
                         <span className="flex items-center gap-1.5">
-                            <Calendar size={12} className="text-indigo-400/50" />
+                            <Calendar size={12} className="text-blue-500/50" />
                             {booking.slot?.date}
                         </span>
                         <span className="flex items-center gap-1.5">
-                            <Clock size={12} className="text-indigo-400/50" />
+                            <Clock size={12} className="text-blue-500/50" />
                             {booking.slot?.start_time} – {booking.slot?.end_time}
                         </span>
                         <span className="flex items-center gap-1.5">
-                            <MapPin size={12} className="text-indigo-400/50" />
+                            <MapPin size={12} className="text-blue-500/50" />
                             {booking.turf?.location}
                         </span>
                     </div>
@@ -161,7 +161,7 @@ export default function BookingsPage() {
             <div className="flex items-center justify-between md:flex-col md:items-end md:justify-center border-t md:border-t-0 pt-5 md:pt-0 border-slate-50 relative z-10 shrink-0 gap-3">
                 <div className={cn(
                     "text-2xl font-black",
-                    isHistory ? "text-slate-400" : "text-slate-900"
+                    isHistory ? "text-slate-500" : "text-white"
                 )}>
                     {formatCurrency(booking.turf?.price_per_hour || 0)}
                 </div>
@@ -219,62 +219,62 @@ export default function BookingsPage() {
 
                 {/* Header */}
                 <header className="mb-10">
-                    <h1 className="text-4xl font-black text-slate-900 mb-2">My Bookings</h1>
-                    <p className="text-slate-500 font-medium">Manage your sessions and review your game history.</p>
+                    <h1 className="text-4xl font-black text-white mb-2">My Bookings</h1>
+                    <p className="text-slate-400 font-medium">Manage your sessions and review your game history.</p>
                 </header>
 
                 {/* Stats row */}
                 {!loading && (
                     <div className="grid grid-cols-3 gap-4 mb-10">
-                        <div className="bg-white rounded-[24px] border border-slate-100 p-5 flex items-center gap-4 shadow-sm">
-                            <div className="w-11 h-11 bg-indigo-50 rounded-xl flex items-center justify-center shrink-0">
-                                <CalendarCheck size={20} className="text-indigo-600" />
+                        <div className="bg-slate-900/50 backdrop-blur-xl rounded-[24px] border border-white/5 p-5 flex items-center gap-4 shadow-2xl">
+                            <div className="w-11 h-11 bg-blue-500/10 rounded-xl flex items-center justify-center shrink-0">
+                                <CalendarCheck size={20} className="text-blue-500" />
                             </div>
                             <div>
-                                <div className="text-2xl font-black text-slate-900">{upcoming.length}</div>
-                                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Upcoming</div>
+                                <div className="text-2xl font-black text-white">{upcoming.length}</div>
+                                <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Upcoming</div>
                             </div>
                         </div>
-                        <div className="bg-white rounded-[24px] border border-slate-100 p-5 flex items-center gap-4 shadow-sm">
-                            <div className="w-11 h-11 bg-rose-50 rounded-xl flex items-center justify-center shrink-0">
+                        <div className="bg-slate-900/50 backdrop-blur-xl rounded-[24px] border border-white/5 p-5 flex items-center gap-4 shadow-2xl">
+                            <div className="w-11 h-11 bg-rose-500/10 rounded-xl flex items-center justify-center shrink-0">
                                 <Ban size={20} className="text-rose-400" />
                             </div>
                             <div>
-                                <div className="text-2xl font-black text-slate-900">
+                                <div className="text-2xl font-black text-white">
                                     {history.filter(b => b.status === 'cancelled').length}
                                 </div>
-                                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Cancelled</div>
+                                <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Cancelled</div>
                             </div>
                         </div>
-                        <div className="bg-white rounded-[24px] border border-slate-100 p-5 flex items-center gap-4 shadow-sm">
-                            <div className="w-11 h-11 bg-slate-100 rounded-xl flex items-center justify-center shrink-0">
+                        <div className="bg-slate-900/50 backdrop-blur-xl rounded-[24px] border border-white/5 p-5 flex items-center gap-4 shadow-2xl">
+                            <div className="w-11 h-11 bg-white/5 rounded-xl flex items-center justify-center shrink-0">
                                 <TimerOff size={20} className="text-slate-400" />
                             </div>
                             <div>
-                                <div className="text-2xl font-black text-slate-900">
+                                <div className="text-2xl font-black text-white">
                                     {history.filter(b => b.status === 'expired').length}
                                 </div>
-                                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Expired</div>
+                                <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Expired</div>
                             </div>
                         </div>
                     </div>
                 )}
 
                 {/* Tabs */}
-                <div className="flex items-center gap-2 mb-8 bg-slate-100 p-1.5 rounded-2xl w-fit">
+                <div className="flex items-center gap-2 mb-8 bg-white/5 p-1.5 rounded-2xl w-fit border border-white/5 backdrop-blur-md">
                     <button
                         onClick={() => setActiveTab('upcoming')}
                         className={cn(
                             "flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200",
                             activeTab === 'upcoming'
-                                ? "bg-white text-indigo-600 shadow-sm border border-indigo-100/50"
-                                : "text-slate-500 hover:text-slate-700"
+                                ? "bg-blue-600 text-white shadow-xl shadow-blue-900/40"
+                                : "text-slate-500 hover:text-white hover:bg-white/5"
                         )}
                     >
                         <CalendarCheck size={16} />
                         Upcoming
                         {!loading && upcoming.length > 0 && (
-                            <span className="ml-1 bg-indigo-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center">
+                            <span className="ml-1 bg-white text-blue-600 text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center">
                                 {upcoming.length}
                             </span>
                         )}
@@ -284,14 +284,14 @@ export default function BookingsPage() {
                         className={cn(
                             "flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200",
                             activeTab === 'history'
-                                ? "bg-white text-slate-700 shadow-sm border border-slate-200/50"
-                                : "text-slate-500 hover:text-slate-700"
+                                ? "bg-white/10 text-white shadow-sm border border-white/10"
+                                : "text-slate-500 hover:text-white hover:bg-white/5"
                         )}
                     >
                         <History size={16} />
                         History
                         {!loading && history.length > 0 && (
-                            <span className="ml-1 bg-slate-400 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center">
+                            <span className="ml-1 bg-white/10 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center">
                                 {history.length}
                             </span>
                         )}

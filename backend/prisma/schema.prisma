@@ -11,7 +11,7 @@ model User {
   id            String    @id @default(uuid())
   name          String?
   email         String    @unique
-  password_hash String
+  password_hash String?
   role          Role      @default(USER)
   is_approved   Boolean   @default(false)
   created_at    DateTime  @default(now())
@@ -29,7 +29,15 @@ model Turf {
   precautions        String[]       @default([])
   images             String[]       @default([])
   sport_type         SportType
-  price_per_hour     Float
+  price_per_hour     Float          // Legacy base price
+  weekday_price      Float          @default(1000)
+  weekend_price      Float          @default(1200)
+  peak_hour_multiplier Float         @default(1.2)
+  peak_start_time      String        @default("18:00")
+  peak_end_time        String        @default("21:00")
+  latitude             Float          @default(0)
+  longitude            Float          @default(0)
+  address              String         @default("")
   opening_time       String
   closing_time       String
   image_url          String?

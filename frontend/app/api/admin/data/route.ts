@@ -52,7 +52,7 @@ export async function GET() {
             const nextSlot = t.slots.find((s: any) => s.start_time > currentTime);
 
             // If the venue is MAINTENANCE or CLOSED, it overrides the slot status
-            const currentStatus = t.operational_status !== 'ACTIVE' ? t.operational_status : (currentSlot ? (currentSlot.is_booked ? 'OCCUPIED' : 'VACANT') : 'CLOSED');
+            const currentStatus = t.operational_status !== 'ACTIVE' ? t.operational_status : (currentSlot ? (currentSlot.is_booked ? 'OCCUPIED' : 'VACANT') : 'ACTIVE');
 
             return {
                 ...t,

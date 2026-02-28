@@ -1,3 +1,4 @@
+// Updated Prisma Client types
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { NextResponse } from "next/server"
@@ -19,10 +20,10 @@ export async function GET(req: Request) {
         // 2. Admins see approved turfs + their own turfs (any status)
         // 3. Super Admins see everything
         if (session?.user?.role === 'USER' || !session?.user) {
-            where.is_approved = true
+            where.status = 'APPROVED'
         } else if (session?.user?.role === 'ADMIN') {
             where.OR = [
-                { is_approved: true, status: 'ACTIVE' },
+                { status: 'APPROVED', operational_status: 'ACTIVE' },
                 { admin_id: session.user.id }
             ]
         }
@@ -70,9 +71,14 @@ export async function POST(req: Request) {
         }
 
         const body = await req.json()
-        const { name, location, sport_type, price_per_hour, opening_time, closing_time, image_url } = body
+        const {
+            name, location, sport_type, price_per_hour, opening_time, closing_time, image_url,
+            description, amenities, precautions, images,
+            weekday_price, weekend_price, peak_hour_multiplier, peak_start_time, peak_end_time,
+            latitude, longitude, address
+        } = body
 
-        if (!name || !location || !sport_type || !price_per_hour || !opening_time || !closing_time) {
+        if (!name || !location || !sport_type || !opening_time || !closing_time) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
         }
 
@@ -80,14 +86,26 @@ export async function POST(req: Request) {
             data: {
                 name,
                 location,
+                description,
+                amenities: Array.isArray(amenities) ? amenities : [],
+                precautions: Array.isArray(precautions) ? precautions : [],
+                images: Array.isArray(images) ? images : [],
                 sport_type: (sport_type === 'Football/Cricket' || sport_type === 'FOOTBALL_CRICKET') ? 'FOOTBALL_CRICKET' : 'PICKLEBALL',
-                price_per_hour: parseFloat(price_per_hour),
+                price_per_hour: parseFloat(weekday_price || price_per_hour || 1000),
+                weekday_price: parseFloat(weekday_price || 1000),
+                weekend_price: parseFloat(weekend_price || 1200),
+                peak_hour_multiplier: parseFloat(peak_hour_multiplier || 1.2),
+                peak_start_time: peak_start_time || "18:00",
+                peak_end_time: peak_end_time || "21:00",
                 opening_time,
                 closing_time,
                 image_url,
                 admin_id: session.user.id as string,
-                is_approved: session.user.role === 'SUPER_ADMIN',
-                status: 'ACTIVE'
+                status: session.user.role === 'SUPER_ADMIN' ? 'APPROVED' : 'PENDING',
+                operational_status: 'ACTIVE',
+                latitude: latitude ? parseFloat(latitude) : 0,
+                longitude: longitude ? parseFloat(longitude) : 0,
+                address: address || ""
             }
         })
 
@@ -102,10 +120,16 @@ export async function POST(req: Request) {
             const date = new Date(today);
             date.setDate(today.getDate() + i);
 
+            // Normalize date for DB
+            const Y = date.getFullYear();
+            const M = String(date.getMonth() + 1).padStart(2, '0');
+            const D = String(date.getDate()).padStart(2, '0');
+            const normalizedDate = new Date(`${Y}-${M}-${D}T00:00:00Z`);
+
             for (let h = startHour; h < endHour; h++) {
                 slots.push({
                     turf_id: turf.id,
-                    date: date,
+                    date: normalizedDate,
                     start_time: `${h.toString().padStart(2, '0')}:00`,
                     end_time: `${(h + 1).toString().padStart(2, '0')}:00`,
                     is_booked: false

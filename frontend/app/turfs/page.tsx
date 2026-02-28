@@ -71,8 +71,8 @@ export default function TurfListing() {
         <Shell>
             <div className="max-w-6xl mx-auto pb-20">
                 <header className="mb-10">
-                    <h1 className="text-4xl font-black text-slate-900 mb-3">Browse Arenas</h1>
-                    <p className="text-slate-500 font-medium text-lg">Find and book the best sports turfs in your city.</p>
+                    <h1 className="text-4xl font-black text-white mb-3 tracking-tight">Browse Arenas</h1>
+                    <p className="text-slate-400 font-medium text-lg">Find and book the best sports turfs in your city.</p>
                 </header>
 
                 {/* Filter bar */}
@@ -213,8 +213,8 @@ export default function TurfListing() {
                         <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
                             <Search size={40} className="text-slate-200" />
                         </div>
-                        <h3 className="text-2xl font-black text-slate-900 mb-2">No arenas found</h3>
-                        <p className="text-slate-500 max-w-sm mx-auto font-medium">
+                        <h3 className="text-2xl font-black text-white mb-2">No arenas found</h3>
+                        <p className="text-slate-400 max-w-sm mx-auto font-medium">
                             Try adjusting your filters or search query.
                         </p>
                         <button
@@ -231,8 +231,8 @@ export default function TurfListing() {
                                 key={turf.id}
                                 href={`/turf/${turf.id}`}
                                 className={cn(
-                                    "group bg-white rounded-[40px] border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-indigo-100/50 transition-all duration-500 overflow-hidden flex flex-col",
-                                    turf.operational_status !== 'ACTIVE' && "grayscale opacity-80 bg-slate-50"
+                                    "group bg-slate-900/50 backdrop-blur-xl rounded-[40px] border border-white/5 shadow-2xl hover:border-indigo-500/50 transition-all duration-500 overflow-hidden flex flex-col",
+                                    turf.operational_status !== 'ACTIVE' && "grayscale opacity-80 bg-slate-800/50"
                                 )}
                             >
                                 <div className="aspect-[16/11] bg-slate-50 relative overflow-hidden">
@@ -248,17 +248,17 @@ export default function TurfListing() {
                                             {turf.sport_type === 'FOOTBALL_CRICKET' ? 'FOOTBALL / CRICKET' : turf.sport_type}
                                         </div>
                                     </div>
-                                    <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-white to-transparent" />
+                                    <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-slate-900/50 to-transparent" />
                                 </div>
 
                                 <div className="p-7 flex-1 flex flex-col pt-3">
                                     <div className="flex justify-between items-start mb-2">
-                                        <h3 className="text-xl font-black text-slate-900 truncate group-hover:text-indigo-600 transition-colors duration-300">
+                                        <h3 className="text-xl font-black text-white truncate group-hover:text-indigo-400 transition-colors duration-300">
                                             {turf.name}
                                         </h3>
-                                        <div className="flex items-center px-2 py-1 bg-amber-50 rounded-lg shrink-0 ml-2">
-                                            <Star size={13} className="text-amber-500 fill-amber-500" />
-                                            <span className="text-xs font-black ml-1 text-amber-700">{turf.avgRating?.toFixed(1) || '0.0'}</span>
+                                        <div className="flex items-center px-2 py-1 bg-amber-400/10 border border-amber-400/20 rounded-lg shrink-0 ml-2">
+                                            <Star size={13} className="text-amber-400 fill-amber-400" />
+                                            <span className="text-xs font-black ml-1 text-amber-400">{turf.avgRating?.toFixed(1) || '0.0'}</span>
                                         </div>
                                     </div>
 
@@ -276,10 +276,10 @@ export default function TurfListing() {
                                         </div>
                                     )}
 
-                                    <div className="mt-auto pt-5 border-t border-slate-50 flex items-center justify-between">
+                                    <div className="mt-auto pt-5 border-t border-white/5 flex items-center justify-between">
                                         <div>
-                                            <span className="text-2xl font-black text-slate-900">{formatCurrency(turf.price_per_hour)}</span>
-                                            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">/ hr</span>
+                                            <span className="text-2xl font-black text-white">{formatCurrency(turf.price_per_hour)}</span>
+                                            <span className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">/ hr</span>
                                         </div>
                                         <div className="w-11 h-11 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center transition-all duration-300 group-hover:bg-indigo-600 group-hover:text-white group-hover:shadow-lg group-hover:shadow-indigo-200">
                                             <ArrowRight size={18} />

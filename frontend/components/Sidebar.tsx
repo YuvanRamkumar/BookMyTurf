@@ -12,9 +12,11 @@ import {
     LogOut,
     MapPin,
     Trophy,
-    History
+    History,
+    CheckCircle2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 interface SidebarProps {
     role?: "USER" | "ADMIN" | "SUPER_ADMIN";
@@ -58,19 +60,19 @@ export default function Sidebar({ role, userName }: SidebarProps) {
     const links = !role ? guestLinks : role === "SUPER_ADMIN" ? superAdminLinks : role === "ADMIN" ? adminLinks : userLinks;
 
     return (
-        <div className="flex bg-white border-r border-slate-200 h-screen w-64 flex-col fixed left-0 top-0">
-            <div className="p-6 flex items-center space-x-2">
-                <Link href="/" className="flex items-center space-x-2">
-                    <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-                        <Trophy className="text-white w-5 h-5" />
+        <div className="flex bg-white border-r border-slate-100 h-screen w-64 flex-col fixed left-0 top-0 z-50 shadow-xl">
+            <div className="p-8 flex items-center mb-4">
+                <Link href="/" className="flex items-center space-x-3 group text-slate-900">
+                    <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center transform group-hover:rotate-12 transition-transform duration-300 shadow-lg shadow-blue-200">
+                        <Trophy className="text-white w-6 h-6" />
                     </div>
-                    <span className="text-xl font-bold tracking-tight text-slate-900">BookMyTurf</span>
+                    <span className="text-xl font-black tracking-tighter">BookMyTurf</span>
                 </Link>
             </div>
 
-            <nav className="flex-1 px-4 py-4 space-y-1">
-                <div className="text-xs font-semibold text-slate-400 uppercase px-2 py-2 mb-2">
-                    Menu
+            <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
+                <div className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] px-4 py-2 mb-2">
+                    Navigation
                 </div>
                 {links.map((link) => {
                     const Icon = link.icon;
@@ -80,53 +82,63 @@ export default function Sidebar({ role, userName }: SidebarProps) {
                             key={link.href}
                             href={link.href}
                             className={cn(
-                                "flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-all duration-200",
+                                "group flex items-center space-x-3 px-4 py-3.5 rounded-2xl transition-all duration-300 relative overflow-hidden",
                                 isActive
-                                    ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200 font-semibold"
-                                    : "text-slate-600 hover:bg-slate-50 hover:text-indigo-600"
+                                    ? "bg-blue-600 text-white shadow-xl shadow-blue-200 font-bold"
+                                    : "text-slate-500 hover:text-blue-600 hover:bg-blue-50"
                             )}
                         >
-                            <Icon size={20} />
-                            <span>{link.label}</span>
+                            <Icon size={22} className={cn("transition-transform group-hover:scale-110", isActive ? "text-white" : "text-slate-400 group-hover:text-blue-600")} />
+                            <span className="text-[15px]">{link.label}</span>
+                            {isActive && (
+                                <motion.div
+                                    layoutId="activeTab"
+                                    className="absolute inset-0 bg-blue-600 -z-10"
+                                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                />
+                            )}
                         </Link>
                     );
                 })}
             </nav>
 
-            <div className="p-4 border-t border-slate-200 mt-auto">
+            <div className="p-4 bg-slate-50 border-t border-slate-100 mt-auto">
                 {userName ? (
-                    <>
-                        <div className="flex items-center space-x-3 mb-6 px-2">
-                            <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-600">
+                    <div className="space-y-4">
+                        <div className="flex items-center space-x-3 p-3 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center font-bold text-white shadow-md shadow-blue-100">
                                 {userName.charAt(0)}
                             </div>
-                            <div className="flex flex-col overflow-hidden">
-                                <span className="text-sm font-semibold text-slate-900 truncate">{userName}</span>
-                                <span className="text-xs text-slate-400 truncate font-medium uppercase tracking-wider">{role}</span>
+                            <div className="flex flex-col min-w-0">
+                                <span className="text-base font-bold text-slate-900 truncate">{userName}</span>
+                                <div className="flex items-center space-x-1">
+                                    <span className="text-[9px] text-blue-600 font-black uppercase tracking-widest">{role}</span>
+                                    <CheckCircle2 size={8} className="text-blue-500" />
+                                </div>
                             </div>
                         </div>
 
                         <button
                             onClick={handleLogout}
-                            className="flex items-center space-x-3 w-full px-3 py-3 rounded-xl text-rose-500 hover:bg-rose-50 transition-colors font-medium"
+                            className="flex items-center space-x-3 w-full px-4 py-3 rounded-2xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-all duration-300 font-bold text-[15px]"
                         >
-                            <LogOut size={20} />
-                            <span>Logout</span>
+                            <LogOut size={22} className="text-slate-400 group-hover:text-rose-500" />
+                            <span>Sign Out</span>
                         </button>
-                    </>
+                    </div>
                 ) : (
-                    <div className="space-y-2">
+                    <div className="grid grid-cols-2 gap-3">
                         <Link
                             href="/login"
-                            className="flex items-center justify-center w-full px-3 py-3 rounded-xl bg-indigo-600 text-white font-bold text-sm hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100"
+                            className="flex items-center justify-center py-3 rounded-xl bg-blue-600 text-white font-bold text-xs hover:bg-blue-700 transition-all shadow-lg shadow-blue-900/40"
                         >
                             Login
                         </Link>
                         <Link
                             href="/register"
-                            className="flex items-center justify-center w-full px-3 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition-all"
+                            className="flex items-center justify-center py-3 rounded-xl bg-white border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition-all"
                         >
-                            Register
+                            Join
                         </Link>
                     </div>
                 )}

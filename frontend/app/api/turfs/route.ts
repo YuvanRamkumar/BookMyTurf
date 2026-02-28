@@ -90,7 +90,15 @@ export async function POST(request: NextRequest) {
             description,
             amenities,
             precautions,
-            images
+            images,
+            weekday_price,
+            weekend_price,
+            peak_hour_multiplier,
+            peak_start_time,
+            peak_end_time,
+            latitude,
+            longitude,
+            address
         } = body;
 
         if (!name || !location || !sport_type || !price_per_hour || !opening_time || !closing_time) {
@@ -107,13 +115,21 @@ export async function POST(request: NextRequest) {
                 precautions: Array.isArray(precautions) ? precautions : [],
                 images: Array.isArray(images) ? images : [],
                 sport_type: (sport_type === 'Football/Cricket' || sport_type === 'FOOTBALL_CRICKET') ? 'FOOTBALL_CRICKET' : 'PICKLEBALL',
-                price_per_hour: Number(price_per_hour),
+                price_per_hour: Number(weekday_price || price_per_hour),
+                weekday_price: Number(weekday_price || 1000),
+                weekend_price: Number(weekend_price || 1200),
+                peak_hour_multiplier: Number(peak_hour_multiplier || 1.2),
+                peak_start_time: peak_start_time || "18:00",
+                peak_end_time: peak_end_time || "21:00",
                 opening_time,
                 closing_time,
                 image_url,
                 admin_id: session.id,
                 status: (session.role === 'SUPER_ADMIN' ? 'APPROVED' : 'PENDING') as any,
-                operational_status: 'ACTIVE' as any
+                operational_status: 'ACTIVE' as any,
+                latitude: Number(latitude) || 0,
+                longitude: Number(longitude) || 0,
+                address: address || ""
             } as any
         });
 
