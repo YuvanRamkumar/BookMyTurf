@@ -1,145 +1,66 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { MapPin, Loader2, Navigation, AlertCircle } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
+import { MapPin, Navigation, ChevronDown } from "lucide-react";
+import { motion } from "framer-motion";
+import { useLocation } from "@/lib/LocationContext";
+import LocationSelectorModal from "./LocationSelectorModal";
 
 export default function LocationDisplay() {
-    const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
-    const [address, setAddress] = useState<string>("");
-    const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
-    const [permissionDenied, setPermissionDenied] = useState<boolean>(false);
+    const { locationState, isLoading } = useLocation();
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
-    useEffect(() => {
-        if (!("geolocation" in navigator)) {
-            setError("Location not supported");
-            setLoading(false);
-            return;
-        }
-
-        const fetchLocation = async () => {
-            try {
-                navigator.geolocation.getCurrentPosition(
-                    async (position) => {
-                        const { latitude, longitude } = position.coords;
-                        setLocation({ lat: latitude, lng: longitude });
-
-                        try {
-                            // Reverse geocode using Nominatim API (free, no key needed)
-                            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`, {
-                                headers: {
-                                    'Accept-Language': 'en-US,en'
-                                }
-                            });
-
-                            if (res.ok) {
-                                const data = await res.json();
-                                // Try to extract the best meaningful location name
-                                const placeName = data.address?.city ||
-                                    data.address?.town ||
-                                    data.address?.village ||
-                                    data.address?.suburb ||
-                                    data.address?.county ||
-                                    "Current Location";
-
-                                setAddress(placeName);
-                            } else {
-                                setAddress("Location detected");
-                            }
-                        } catch (e) {
-                            setAddress("Location detected");
-                        }
-                        setLoading(false);
-                        setPermissionDenied(false);
-                        setError(null);
-                    },
-                    (err) => {
-                        setLoading(false);
-                        if (err.code === err.PERMISSION_DENIED) {
-                            setPermissionDenied(true);
-                            setError("Enable location access");
-                        } else {
-                            setError("Unable to find location");
-                        }
-                    },
-                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-                );
-            } catch (err) {
-                setLoading(false);
-                setError("Location error");
-            }
-        };
-
-        fetchLocation();
-    }, []);
-
-    const handleRetry = () => {
-        setLoading(true);
-        setError(null);
-        setPermissionDenied(false);
-        // Force re-render effect essentially
-        navigator.geolocation.getCurrentPosition(
-            () => { window.location.reload(); },
-            () => { setLoading(false); setError("Still unable to access"); }
+    if (isLoading) {
+        return (
+            <div className="flex items-center space-x-2 px-3 py-2 bg-slate-50 rounded-xl animate-pulse">
+                <div className="w-4 h-4 rounded-full bg-slate-200" />
+                <div className="w-20 h-3 rounded-full bg-slate-200" />
+            </div>
         );
     }
 
-    return (
-        <div className="relative group cursor-pointer">
-            <AnimatePresence mode="wait">
-                {loading ? (
-                    <motion.div
-                        key="loading"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="flex items-center space-x-2 px-3 py-2 bg-slate-100 rounded-xl"
-                    >
-                        <Loader2 className="w-4 h-4 text-slate-400 animate-spin" />
-                        <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Locating...</span>
-                    </motion.div>
-                ) : error || permissionDenied ? (
-                    <motion.div
-                        key="error"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={handleRetry}
-                        className="flex items-center space-x-2 px-3 py-2 bg-rose-50 border border-rose-100 rounded-xl hover:bg-rose-100 transition-colors"
-                    >
-                        <AlertCircle className="w-4 h-4 text-rose-500" />
-                        <span className="text-[11px] font-bold text-rose-600 uppercase tracking-widest truncate max-w-[120px]">
-                            {error}
-                        </span>
-                    </motion.div>
-                ) : (
-                    <motion.div
-                        key="success"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="flex items-center space-x-2 px-3 py-2 bg-blue-50 border border-blue-100 rounded-xl hover:bg-blue-100 transition-colors"
-                    >
-                        <div className="relative">
-                            <MapPin className="w-4 h-4 text-blue-600 relative z-10" />
-                            <div className="absolute inset-0 bg-blue-400 blur-sm rounded-full opacity-50 animate-pulse"></div>
-                        </div>
-                        <span className="text-[12px] font-bold text-blue-700 truncate max-w-[120px]">
-                            {address}
-                        </span>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+    const { mode, area } = locationState;
+    const isGPS = mode === 'GPS';
 
-            {/* Tooltip */}
-            {!loading && location && (
-                <div className="absolute top-full left-0 mt-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
-                    <div className="bg-slate-900 text-white text-[10px] py-1.5 px-3 rounded-lg shadow-xl font-mono whitespace-nowrap border border-slate-700">
-                        {location.lat.toFixed(4)}, {location.lng.toFixed(4)}
+    return (
+        <>
+            <div className="relative group cursor-pointer" onClick={() => setIsModalOpen(true)}>
+                <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`flex items-center space-x-2 px-3 py-2.5 rounded-xl border transition-colors ${isGPS
+                            ? 'bg-blue-50 border-blue-100 hover:bg-blue-100 hover:border-blue-200'
+                            : 'bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300'
+                        }`}
+                >
+                    <div className="relative">
+                        {isGPS ? (
+                            <>
+                                <Navigation className="w-4 h-4 text-blue-600 relative z-10" />
+                                <div className="absolute inset-0 bg-blue-400 blur-sm rounded-full opacity-50 animate-pulse"></div>
+                            </>
+                        ) : (
+                            <MapPin className="w-4 h-4 text-slate-700 relative z-10" />
+                        )}
                     </div>
-                </div>
-            )}
-        </div>
+
+                    <div className="flex flex-col min-w-0">
+                        <span className={`text-[9px] font-black uppercase tracking-widest ${isGPS ? 'text-blue-500' : 'text-slate-400'}`}>
+                            {isGPS ? 'Current Location' : 'Selected Area'}
+                        </span>
+                        <span className={`text-[13px] font-bold truncate max-w-[140px] ${isGPS ? 'text-blue-900' : 'text-slate-900'}`}>
+                            {area || "Select location"}
+                        </span>
+                    </div>
+
+                    <ChevronDown className={`w-4 h-4 ml-1 ${isGPS ? 'text-blue-400' : 'text-slate-400'} group-hover:translate-y-0.5 transition-transform`} />
+                </motion.div>
+            </div>
+
+            <LocationSelectorModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+            />
+        </>
     );
 }

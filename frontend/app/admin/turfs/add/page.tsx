@@ -11,6 +11,8 @@ export default function AddTurf() {
     const [formData, setFormData] = useState({
         name: "",
         location: "",
+        area: "",
+        city: "",
         description: "",
         amenities: [] as string[],
         precautions: [] as string[],
@@ -104,6 +106,8 @@ export default function AddTurf() {
                     latitude: formData.latitude ? parseFloat(formData.latitude) : 0,
                     longitude: formData.longitude ? parseFloat(formData.longitude) : 0,
                     address: formData.address,
+                    area: formData.area,
+                    city: formData.city,
                 }),
             });
 
@@ -191,13 +195,37 @@ export default function AddTurf() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700 uppercase tracking-wider">Location</label>
+                            <label className="text-sm font-bold text-slate-700 uppercase tracking-wider">Location / Landmark</label>
                             <input
                                 required
                                 type="text"
-                                placeholder="e.g. Area 51, Downtown"
+                                placeholder="e.g. Near Central Mall"
                                 value={formData.location}
                                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                                className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-600 font-medium text-slate-800"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700 uppercase tracking-wider">Area</label>
+                            <input
+                                required
+                                type="text"
+                                placeholder="e.g. Ganapathy"
+                                value={formData.area}
+                                onChange={(e) => setFormData({ ...formData, area: e.target.value })}
+                                className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-600 font-medium text-slate-800"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700 uppercase tracking-wider">City</label>
+                            <input
+                                required
+                                type="text"
+                                placeholder="e.g. Coimbatore"
+                                value={formData.city}
+                                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                                 className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-600 font-medium text-slate-800"
                             />
                         </div>

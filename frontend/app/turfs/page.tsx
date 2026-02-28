@@ -5,6 +5,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Search, MapPin, Trophy, Star, Filter, ArrowRight, SlidersHorizontal, X } from "lucide-react";
 import Link from "next/link";
 import { formatCurrency, cn } from "@/lib/utils";
+import { useLocation } from "@/lib/LocationContext";
 
 const PRICE_PRESETS = [
     { label: "Any", min: 0, max: 10000 },
@@ -24,11 +25,19 @@ export default function TurfListing() {
     const [maxPrice, setMaxPrice] = useState(MAX_SLIDER);
     const [activePreset, setActivePreset] = useState("Any");
     const [showPricePanel, setShowPricePanel] = useState(false);
+    const { locationState } = useLocation();
 
     const fetchTurfs = useCallback(() => {
         setLoading(true);
         const params = new URLSearchParams();
         if (sportFilter !== "All") params.append("sportType", sportFilter);
+
+        if (locationState.mode === 'GPS' && locationState.coordinates) {
+            params.append("lat", locationState.coordinates.lat.toString());
+            params.append("lng", locationState.coordinates.lng.toString());
+        } else if (locationState.area) {
+            params.append("area", locationState.area);
+        }
 
         fetch(`/api/turfs${params.toString() ? `?${params}` : ""}`)
             .then(res => res.json())
@@ -37,7 +46,7 @@ export default function TurfListing() {
                 setLoading(false);
             })
             .catch(() => setLoading(false));
-    }, [sportFilter]);
+    }, [sportFilter, locationState]);
 
     useEffect(() => { fetchTurfs(); }, [fetchTurfs]);
 
@@ -263,8 +272,16 @@ export default function TurfListing() {
                                     </div>
 
                                     <div className="flex items-center text-slate-400 text-sm mb-2 font-bold">
-                                        <MapPin size={14} className="mr-1.5 text-slate-300" />
-                                        {turf.location}
+                                        <MapPin size={14} className="mr-1.5 text-slate-300 shrink-0" />
+                                        <span className="truncate">
+                                            {turf.area ? `${turf.area}, ${turf.city || 'Coimbatore'}` : turf.location}
+                                        </span>
+                                        {turf.distance !== undefined && (
+                                            <>
+                                                <span className="mx-2 text-slate-600">•</span>
+                                                <span className="text-indigo-400 whitespace-nowrap">{turf.distance} km away</span>
+                                            </>
+                                        )}
                                     </div>
 
                                     {turf.operational_status !== 'ACTIVE' && (

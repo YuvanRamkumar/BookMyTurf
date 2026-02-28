@@ -12,6 +12,9 @@ model User {
   name          String?
   email         String    @unique
   password_hash String?
+  preferredArea String?
+  preferredLat  Float?
+  preferredLng  Float?
   role          Role      @default(USER)
   is_approved   Boolean   @default(false)
   created_at    DateTime  @default(now())
@@ -35,6 +38,8 @@ model Turf {
   peak_hour_multiplier Float          @default(1.2)
   latitude             Float          @default(0)
   longitude            Float          @default(0)
+  area                 String         @default("")
+  city                 String         @default("")
   address              String         @default("")
   opening_time         String
   closing_time         String

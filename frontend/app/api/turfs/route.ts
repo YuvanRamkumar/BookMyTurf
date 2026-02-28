@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
+import { calculateDistance } from '@/lib/geo';
 
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
@@ -8,6 +9,9 @@ export async function GET(request: NextRequest) {
     const minPrice = searchParams.get('minPrice');
     const maxPrice = searchParams.get('maxPrice');
     const sportType = searchParams.get('sportType');
+    const area = searchParams.get('area');
+    const lat = searchParams.get('lat');
+    const lng = searchParams.get('lng');
 
     const session = await getSession();
 
@@ -44,6 +48,13 @@ export async function GET(request: NextRequest) {
             if (maxPrice) where.price_per_hour.lte = Number(maxPrice);
         }
 
+        if (area) {
+            where.area = {
+                contains: area,
+                mode: 'insensitive' // Optional: Allows loosely matching "Ganapathy" vs "ganapathy"
+            };
+        }
+
         const turfs = await prisma.turf.findMany({
             where,
             include: {
@@ -56,15 +67,37 @@ export async function GET(request: NextRequest) {
             }
         });
 
-        // Calculate average rating for each turf
-        const turfsWithRating = turfs.map((t: any) => {
+        // Calculate average rating and distance for each turf
+        let turfsWithData = turfs.map((t: any) => {
             const avgRating = t.reviews.length > 0
                 ? t.reviews.reduce((acc: number, r: any) => acc + r.rating, 0) / t.reviews.length
                 : 0;
-            return { ...t, avgRating, reviewCount: t.reviews.length };
+
+            let distance = undefined;
+            // If GPS params are passed and turf has valid coordinates mapped
+            if (lat && lng && t.latitude && t.longitude && !(t.latitude === 0 && t.longitude === 0)) {
+                // Return exactly 2 decimals as requested: 2.31 
+                const calculatedDistance = calculateDistance(Number(lat), Number(lng), t.latitude, t.longitude);
+                distance = parseFloat(calculatedDistance.toFixed(2));
+            }
+
+            return { ...t, avgRating, reviewCount: t.reviews.length, distance };
         });
 
-        return NextResponse.json(turfsWithRating);
+        // Smart sorting rule
+        // IF GPS enabled: Sort by nearest inside the query.
+        // IF Area selected (No GPS): Sort by highest rating inside that area.
+        if (lat && lng) {
+            turfsWithData = turfsWithData.sort((a, b) => {
+                if (a.distance !== undefined && b.distance !== undefined) return a.distance - b.distance;
+                if (a.distance !== undefined) return -1;
+                return 1;
+            });
+        } else if (area) {
+            turfsWithData = turfsWithData.sort((a, b) => b.avgRating - a.avgRating);
+        }
+
+        return NextResponse.json(turfsWithData);
     } catch (error) {
         console.error("Fetch turfs error:", error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
@@ -82,6 +115,8 @@ export async function POST(request: NextRequest) {
         const {
             name,
             location,
+            area,
+            city,
             sport_type,
             price_per_hour,
             opening_time,
@@ -101,8 +136,8 @@ export async function POST(request: NextRequest) {
             address
         } = body;
 
-        if (!name || !location || !sport_type || !price_per_hour || !opening_time || !closing_time) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+        if (!name || !location || !sport_type || !price_per_hour || !opening_time || !closing_time || !area || !city) {
+            return NextResponse.json({ error: 'Missing required fields. Area and City are now mandatory.' }, { status: 400 });
         }
 
         // Create the turf
@@ -110,6 +145,8 @@ export async function POST(request: NextRequest) {
             data: {
                 name,
                 location,
+                area,
+                city,
                 description,
                 amenities: Array.isArray(amenities) ? amenities : [],
                 precautions: Array.isArray(precautions) ? precautions : [],
