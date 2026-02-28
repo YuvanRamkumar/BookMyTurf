@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Trophy, Loader2, Mail, Lock, User, AlertCircle, ArrowRight } from "lucide-react";
+import { signIn } from "next-auth/react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -192,6 +193,28 @@ export default function RegisterPage() {
                                 </button>
                             </div>
                         </form>
+
+                        <div className="mt-8">
+                            <div className="relative">
+                                <div className="absolute inset-0 flex items-center">
+                                    <div className="w-full border-t border-slate-800"></div>
+                                </div>
+                                <div className="relative flex justify-center text-xs uppercase tracking-widest font-bold">
+                                    <span className="px-4 bg-[#0a0f1e] text-slate-500">Or join with</span>
+                                </div>
+                            </div>
+
+                            <div className="mt-8">
+                                <button
+                                    type="button"
+                                    onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+                                    className="w-full flex justify-center items-center py-3.5 px-4 bg-slate-800/50 border border-slate-700/50 rounded-xl shadow-sm text-sm font-bold text-white hover:bg-slate-800 transition-all active:scale-[0.98]"
+                                >
+                                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5 mr-3" alt="Google" />
+                                    <span>Google Account</span>
+                                </button>
+                            </div>
+                        </div>
 
                         <div className="mt-8 pt-8 border-t border-slate-800">
                             <p className="text-center text-sm text-slate-400">
