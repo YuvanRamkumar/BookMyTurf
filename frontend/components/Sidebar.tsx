@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import LocationDisplay from "./LocationDisplay";
 
 interface SidebarProps {
     role?: "USER" | "ADMIN" | "SUPER_ADMIN";
@@ -61,13 +62,17 @@ export default function Sidebar({ role, userName }: SidebarProps) {
 
     return (
         <div className="flex bg-white border-r border-slate-100 h-screen w-64 flex-col fixed left-0 top-0 z-50 shadow-xl">
-            <div className="p-8 flex items-center mb-4">
+            <div className="p-8 flex items-center mb-0">
                 <Link href="/" className="flex items-center space-x-3 group text-slate-900">
-                    <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center transform group-hover:rotate-12 transition-transform duration-300 shadow-lg shadow-blue-200">
+                    <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center transform group-hover:rotate-12 transition-transform duration-300 shadow-lg shadow-blue-200 shrink-0">
                         <Trophy className="text-white w-6 h-6" />
                     </div>
                     <span className="text-xl font-black tracking-tighter">BookMyTurf</span>
                 </Link>
+            </div>
+
+            <div className="px-8 pb-4">
+                <LocationDisplay />
             </div>
 
             <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
